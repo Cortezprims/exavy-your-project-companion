@@ -64,7 +64,7 @@ const plans = [
 ];
 
 const Subscription = () => {
-  const currentPlan = 'free';
+  const currentPlan: string = 'free';
 
   return (
     <MainLayout>
