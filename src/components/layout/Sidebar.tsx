@@ -74,14 +74,14 @@ export const Sidebar = () => {
 
   return (
     <>
-      {/* Mobile toggle */}
+      {/* Mobile toggle - bigger and more visible */}
       <Button
-        variant="ghost"
+        variant="default"
         size="icon"
-        className="fixed top-4 left-4 z-50 md:hidden"
+        className="fixed top-4 left-4 z-50 md:hidden h-12 w-12 rounded-xl shadow-lg bg-primary hover:bg-primary/90"
         onClick={() => setIsOpen(!isOpen)}
       >
-        {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
       </Button>
 
       {/* Overlay */}
