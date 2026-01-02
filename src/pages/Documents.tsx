@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -75,6 +76,7 @@ const getStatusBadge = (status: string) => {
 
 const Documents = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
@@ -218,15 +220,33 @@ const Documents = () => {
                     <DocumentProcessingProgress status={doc.status} />
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="flex-1" disabled={doc.status !== 'completed'}>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1" 
+                      disabled={doc.status !== 'completed'}
+                      onClick={() => navigate(`/quiz/${doc.id}`)}
+                    >
                       <Brain className="w-3 h-3 mr-1" />
                       Quiz
                     </Button>
-                    <Button variant="outline" size="sm" className="flex-1" disabled={doc.status !== 'completed'}>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1" 
+                      disabled={doc.status !== 'completed'}
+                      onClick={() => navigate(`/flashcards/${doc.id}`)}
+                    >
                       <BookOpen className="w-3 h-3 mr-1" />
                       Flashcards
                     </Button>
-                    <Button variant="outline" size="sm" className="flex-1" disabled={doc.status !== 'completed'}>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1" 
+                      disabled={doc.status !== 'completed'}
+                      onClick={() => navigate(`/summaries/${doc.id}`)}
+                    >
                       <Sparkles className="w-3 h-3 mr-1" />
                       Résumé
                     </Button>

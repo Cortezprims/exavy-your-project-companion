@@ -120,7 +120,7 @@ export const DocumentUpload = ({ onUploadComplete }: DocumentUploadProps) => {
         }
 
         // Create document record
-        const { error: dbError } = await supabase.from('documents').insert({
+        const { data: docData, error: dbError } = await supabase.from('documents').insert({
           user_id: user.id,
           title: file.name.replace(/\.[^/.]+$/, ''),
           file_type: fileType,
@@ -129,12 +129,23 @@ export const DocumentUpload = ({ onUploadComplete }: DocumentUploadProps) => {
           file_size: file.size,
           mime_type: file.type,
           status: 'pending',
-        });
+        }).select().single();
 
         if (dbError) {
           console.error('DB error:', dbError);
           toast.error(`Erreur lors de l'enregistrement de ${file.name}`);
           continue;
+        }
+
+        // Trigger document processing in background
+        if (docData) {
+          supabase.functions.invoke('process-document', {
+            body: { documentId: docData.id }
+          }).then(({ error }) => {
+            if (error) {
+              console.error('Processing error:', error);
+            }
+          });
         }
 
         setUploadProgress(((i + 1) / files.length) * 100);

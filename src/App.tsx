@@ -92,12 +92,12 @@ const App = () => (
                 <Documents />
               </ProtectedRoute>
             } />
-            <Route path="/quiz" element={
+            <Route path="/quiz/:documentId" element={
               <ProtectedRoute>
                 <Quiz />
               </ProtectedRoute>
             } />
-            <Route path="/flashcards" element={
+            <Route path="/flashcards/:documentId" element={
               <ProtectedRoute>
                 <Flashcards />
               </ProtectedRoute>
@@ -107,7 +107,7 @@ const App = () => (
                 <ChatAI />
               </ProtectedRoute>
             } />
-            <Route path="/summaries" element={
+            <Route path="/summaries/:documentId" element={
               <ProtectedRoute>
                 <Summaries />
               </ProtectedRoute>
