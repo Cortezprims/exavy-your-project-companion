@@ -19,7 +19,8 @@ import {
   Sparkles,
   Image,
   Music,
-  Loader2
+  Loader2,
+  Network
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -219,11 +220,10 @@ const Documents = () => {
                   <div className="mb-4">
                     <DocumentProcessingProgress status={doc.status} />
                   </div>
-                  <div className="flex gap-2">
+                  <div className="grid grid-cols-2 gap-2">
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="flex-1" 
                       disabled={doc.status !== 'completed'}
                       onClick={() => navigate(`/quiz/${doc.id}`)}
                     >
@@ -233,7 +233,6 @@ const Documents = () => {
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="flex-1" 
                       disabled={doc.status !== 'completed'}
                       onClick={() => navigate(`/flashcards/${doc.id}`)}
                     >
@@ -243,12 +242,20 @@ const Documents = () => {
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="flex-1" 
                       disabled={doc.status !== 'completed'}
                       onClick={() => navigate(`/summaries/${doc.id}`)}
                     >
                       <Sparkles className="w-3 h-3 mr-1" />
                       Résumé
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      disabled={doc.status !== 'completed'}
+                      onClick={() => navigate(`/mindmap/${doc.id}`)}
+                    >
+                      <Network className="w-3 h-3 mr-1" />
+                      Mind Map
                     </Button>
                   </div>
                 </CardContent>

@@ -13,6 +13,7 @@ import Quiz from "./pages/Quiz";
 import Flashcards from "./pages/Flashcards";
 import ChatAI from "./pages/ChatAI";
 import Summaries from "./pages/Summaries";
+import MindMap from "./pages/MindMap";
 import Rephrase from "./pages/Rephrase";
 import Planning from "./pages/Planning";
 import Skills from "./pages/Skills";
@@ -110,6 +111,11 @@ const App = () => (
             <Route path="/summaries/:documentId" element={
               <ProtectedRoute>
                 <Summaries />
+              </ProtectedRoute>
+            } />
+            <Route path="/mindmap/:documentId" element={
+              <ProtectedRoute>
+                <MindMap />
               </ProtectedRoute>
             } />
             <Route path="/rephrase" element={

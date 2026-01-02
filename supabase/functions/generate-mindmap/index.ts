@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { documentId, userId } = await req.json();
+    const { documentId, userId, focusPoints, clarification } = await req.json();
     
     if (!documentId || !userId) {
       return new Response(
@@ -44,6 +44,15 @@ serve(async (req) => {
 
     console.log('Generating mind map for:', document.title);
 
+    // Build custom instructions
+    let customInstructions = '';
+    if (focusPoints && focusPoints.length > 0) {
+      customInstructions += `\n\nIMPORTANT: Mets particulièrement en avant ces points clés dans la carte mentale:\n${focusPoints.map((p: string, i: number) => `${i + 1}. ${p}`).join('\n')}`;
+    }
+    if (clarification) {
+      customInstructions += `\n\nL'utilisateur a besoin d'éclaircissements sur cette partie du document, développe-la davantage dans la carte mentale:\n"${clarification}"`;
+    }
+
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -55,7 +64,7 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `Tu es un expert en organisation visuelle de l'information. Crée une structure de carte mentale hiérarchique en français.
+            content: `Tu es un expert en organisation visuelle de l'information. Crée une structure de carte mentale hiérarchique en français.${customInstructions}
 
 Format de réponse STRICTEMENT en JSON:
 {
@@ -80,7 +89,7 @@ Format de réponse STRICTEMENT en JSON:
   ]
 }
 
-Crée une structure avec 4-6 branches principales et 2-4 sous-branches chacune.`
+Crée une structure avec 4-6 branches principales et 2-4 sous-branches chacune. Les labels doivent être courts et percutants.`
           },
           {
             role: 'user',
