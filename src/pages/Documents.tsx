@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DocumentUpload } from '@/components/documents/DocumentUpload';
 import { DocumentProcessingProgress } from '@/components/documents/DocumentProcessingProgress';
+import { GenerateOptionsDialog } from '@/components/documents/GenerateOptionsDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { 
@@ -20,12 +21,15 @@ import {
   Image,
   Music,
   Loader2,
-  Network
+  Network,
+  MessageSquare,
+  Crown
 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
@@ -81,6 +85,17 @@ const Documents = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Generate options dialog state
+  const [generateDialogOpen, setGenerateDialogOpen] = useState(false);
+  const [generateType, setGenerateType] = useState<'quiz' | 'flashcards'>('quiz');
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
+
+  const openGenerateDialog = (doc: Document, type: 'quiz' | 'flashcards') => {
+    setSelectedDocument(doc);
+    setGenerateType(type);
+    setGenerateDialogOpen(true);
+  };
 
   const fetchDocuments = async () => {
     if (!user) return;
@@ -225,7 +240,7 @@ const Documents = () => {
                       variant="outline" 
                       size="sm" 
                       disabled={doc.status !== 'completed'}
-                      onClick={() => navigate(`/quiz/${doc.id}`)}
+                      onClick={() => openGenerateDialog(doc, 'quiz')}
                     >
                       <Brain className="w-3 h-3 mr-1" />
                       Quiz
@@ -234,7 +249,7 @@ const Documents = () => {
                       variant="outline" 
                       size="sm" 
                       disabled={doc.status !== 'completed'}
-                      onClick={() => navigate(`/flashcards/${doc.id}`)}
+                      onClick={() => openGenerateDialog(doc, 'flashcards')}
                     >
                       <BookOpen className="w-3 h-3 mr-1" />
                       Flashcards
@@ -258,6 +273,14 @@ const Documents = () => {
                       Mind Map
                     </Button>
                   </div>
+                  
+                  {/* Premium badge for audio/image */}
+                  {(doc.file_type === 'audio' || doc.file_type === 'image') && (
+                    <div className="flex items-center gap-1 mt-2 text-xs text-amber-600">
+                      <Crown className="w-3 h-3" />
+                      <span>Contenu Premium</span>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}
@@ -276,6 +299,19 @@ const Documents = () => {
             </p>
             <DocumentUpload onUploadComplete={fetchDocuments} />
           </Card>
+        )}
+
+        {/* Generate Options Dialog */}
+        {selectedDocument && user && (
+          <GenerateOptionsDialog
+            open={generateDialogOpen}
+            onOpenChange={setGenerateDialogOpen}
+            type={generateType}
+            documentId={selectedDocument.id}
+            documentTitle={selectedDocument.title}
+            userId={user.id}
+            onGenerated={fetchDocuments}
+          />
         )}
       </div>
     </MainLayout>

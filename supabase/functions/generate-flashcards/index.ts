@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { documentId, userId, cardCount = 15 } = await req.json();
+    const { documentId, userId, cardCount = 15, focusArea = '', specificPart = '' } = await req.json();
     
     if (!documentId || !userId) {
       return new Response(
@@ -44,6 +44,15 @@ serve(async (req) => {
 
     console.log('Generating flashcards for:', document.title);
 
+    // Build focus prompt if user specified a focus area or specific part
+    let focusPrompt = '';
+    if (focusArea) {
+      focusPrompt += `\n\nFOCUS SPÉCIFIQUE: Concentre-toi sur le thème/concept: "${focusArea}". Les flashcards doivent principalement porter sur ce sujet.`;
+    }
+    if (specificPart) {
+      focusPrompt += `\n\nPARTIE SPÉCIFIQUE: L'utilisateur veut des flashcards sur: "${specificPart}". Crée des cartes uniquement sur cette section.`;
+    }
+
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -56,7 +65,7 @@ serve(async (req) => {
           {
             role: 'system',
             content: `Tu es un expert en création de flashcards éducatives. Crée des cartes mémoire efficaces en français.
-Chaque carte doit avoir une question/terme au recto et une réponse/définition concise au verso.
+Chaque carte doit avoir une question/terme au recto et une réponse/définition concise au verso.${focusPrompt}
 
 Format de réponse STRICTEMENT en JSON:
 {
