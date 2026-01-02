@@ -163,9 +163,9 @@ const Dashboard = () => {
   return (
     <MainLayout>
       <div className="p-6 space-y-6">
-        {/* Header */}
+        {/* Header - adjusted for mobile menu button */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
+          <div className="ml-16 md:ml-0">
             <h1 className="text-2xl font-bold">
               Bonjour, {user?.email?.split('@')[0] || 'Étudiant'} 👋
             </h1>
