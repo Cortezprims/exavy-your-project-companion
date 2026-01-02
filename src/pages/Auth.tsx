@@ -6,7 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
-import { Sparkles, Mail, Lock, User } from 'lucide-react';
+import { Sparkles, Mail, Lock, User, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -20,12 +21,30 @@ const Auth = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!loginEmail || !loginPassword) {
+      toast.error('Veuillez remplir tous les champs');
+      return;
+    }
+
     setLoading(true);
     try {
-      await signIn(loginEmail, loginPassword);
+      const { error } = await signIn(loginEmail, loginPassword);
+      if (error) {
+        if (error.message.includes('Invalid login credentials')) {
+          toast.error('Email ou mot de passe incorrect');
+        } else if (error.message.includes('Email not confirmed')) {
+          toast.error('Veuillez confirmer votre email');
+        } else {
+          toast.error(error.message);
+        }
+        return;
+      }
+      toast.success('Connexion réussie !');
       navigate('/dashboard');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login error:', error);
+      toast.error('Erreur de connexion');
     } finally {
       setLoading(false);
     }
@@ -33,12 +52,33 @@ const Auth = () => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!signupEmail || !signupPassword) {
+      toast.error('Veuillez remplir tous les champs');
+      return;
+    }
+
+    if (signupPassword.length < 6) {
+      toast.error('Le mot de passe doit contenir au moins 6 caractères');
+      return;
+    }
+
     setLoading(true);
     try {
-      await signUp(signupEmail, signupPassword);
-      navigate('/onboarding');
-    } catch (error) {
+      const { error } = await signUp(signupEmail, signupPassword);
+      if (error) {
+        if (error.message.includes('already registered')) {
+          toast.error('Cet email est déjà utilisé');
+        } else {
+          toast.error(error.message);
+        }
+        return;
+      }
+      toast.success('Compte créé avec succès !');
+      navigate('/dashboard');
+    } catch (error: any) {
       console.error('Signup error:', error);
+      toast.error('Erreur lors de la création du compte');
     } finally {
       setLoading(false);
     }
@@ -77,6 +117,7 @@ const Auth = () => {
                       value={loginEmail}
                       onChange={(e) => setLoginEmail(e.target.value)}
                       required
+                      disabled={loading}
                     />
                   </div>
                 </div>
@@ -92,11 +133,19 @@ const Auth = () => {
                       value={loginPassword}
                       onChange={(e) => setLoginPassword(e.target.value)}
                       required
+                      disabled={loading}
                     />
                   </div>
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? 'Connexion...' : 'Se connecter'}
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Connexion...
+                    </>
+                  ) : (
+                    'Se connecter'
+                  )}
                 </Button>
               </form>
             </TabsContent>
@@ -104,7 +153,7 @@ const Auth = () => {
             <TabsContent value="signup">
               <form onSubmit={handleSignup} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="signup-name">Nom</Label>
+                  <Label htmlFor="signup-name">Nom (optionnel)</Label>
                   <div className="relative">
                     <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
@@ -114,7 +163,7 @@ const Auth = () => {
                       className="pl-10"
                       value={signupName}
                       onChange={(e) => setSignupName(e.target.value)}
-                      required
+                      disabled={loading}
                     />
                   </div>
                 </div>
@@ -130,6 +179,7 @@ const Auth = () => {
                       value={signupEmail}
                       onChange={(e) => setSignupEmail(e.target.value)}
                       required
+                      disabled={loading}
                     />
                   </div>
                 </div>
@@ -145,11 +195,21 @@ const Auth = () => {
                       value={signupPassword}
                       onChange={(e) => setSignupPassword(e.target.value)}
                       required
+                      minLength={6}
+                      disabled={loading}
                     />
                   </div>
+                  <p className="text-xs text-muted-foreground">Minimum 6 caractères</p>
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? 'Création...' : 'Créer un compte'}
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Création...
+                    </>
+                  ) : (
+                    'Créer un compte'
+                  )}
                 </Button>
               </form>
             </TabsContent>
