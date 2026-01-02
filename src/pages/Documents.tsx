@@ -1,18 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DocumentUpload } from '@/components/documents/DocumentUpload';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { 
   FileText, 
-  Upload, 
   Search, 
   MoreVertical, 
   Trash2, 
   Eye,
   Brain,
   BookOpen,
-  Sparkles
+  Sparkles,
+  Image,
+  Music,
+  Loader2
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -20,26 +25,114 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
 
 interface Document {
   id: string;
-  name: string;
-  type: string;
-  size: string;
-  uploadedAt: string;
+  title: string;
+  file_type: string;
+  file_name: string | null;
+  file_path: string | null;
+  file_size: number | null;
+  status: string;
+  created_at: string;
 }
 
+const getFileIcon = (type: string) => {
+  switch (type) {
+    case 'pdf':
+      return <FileText className="w-6 h-6 text-red-500" />;
+    case 'image':
+      return <Image className="w-6 h-6 text-blue-500" />;
+    case 'audio':
+      return <Music className="w-6 h-6 text-purple-500" />;
+    default:
+      return <FileText className="w-6 h-6 text-gray-500" />;
+  }
+};
+
+const formatFileSize = (bytes: number | null): string => {
+  if (!bytes) return '';
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+};
+
+const getStatusBadge = (status: string) => {
+  switch (status) {
+    case 'completed':
+      return <Badge variant="default" className="bg-secondary">Traité</Badge>;
+    case 'processing':
+      return <Badge variant="outline" className="text-warning border-warning">En cours</Badge>;
+    case 'error':
+      return <Badge variant="destructive">Erreur</Badge>;
+    default:
+      return <Badge variant="outline">En attente</Badge>;
+  }
+};
+
 const Documents = () => {
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
-  const [documents] = useState<Document[]>([
-    { id: '1', name: 'Histoire - Révolution Française.pdf', type: 'PDF', size: '2.4 MB', uploadedAt: '2024-01-15' },
-    { id: '2', name: 'Mathématiques - Algèbre.pdf', type: 'PDF', size: '1.8 MB', uploadedAt: '2024-01-14' },
-    { id: '3', name: 'Anglais - Grammar Guide.pdf', type: 'PDF', size: '3.1 MB', uploadedAt: '2024-01-12' },
-    { id: '4', name: 'Physique - Mécanique.pdf', type: 'PDF', size: '2.9 MB', uploadedAt: '2024-01-10' },
-  ]);
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchDocuments = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('documents')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching documents:', error);
+        toast.error('Erreur lors du chargement des documents');
+        return;
+      }
+
+      setDocuments(data || []);
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDocuments();
+  }, [user]);
+
+  const deleteDocument = async (id: string, filePath: string | null) => {
+    try {
+      // Delete from storage if file exists
+      if (filePath) {
+        await supabase.storage.from('documents').remove([filePath]);
+      }
+
+      // Delete from database
+      const { error } = await supabase
+        .from('documents')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        toast.error('Erreur lors de la suppression');
+        return;
+      }
+
+      toast.success('Document supprimé');
+      fetchDocuments();
+    } catch (error) {
+      console.error('Error deleting document:', error);
+      toast.error('Erreur lors de la suppression');
+    }
+  };
 
   const filteredDocuments = documents.filter(doc =>
-    doc.name.toLowerCase().includes(searchQuery.toLowerCase())
+    doc.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -53,10 +146,7 @@ const Documents = () => {
               Gérez vos documents et générez du contenu d'apprentissage
             </p>
           </div>
-          <Button>
-            <Upload className="w-4 h-4 mr-2" />
-            Importer un document
-          </Button>
+          <DocumentUpload onUploadComplete={fetchDocuments} />
         </div>
 
         {/* Search */}
@@ -70,69 +160,84 @@ const Documents = () => {
           />
         </div>
 
+        {/* Loading State */}
+        {loading && (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        )}
+
         {/* Documents Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredDocuments.map((doc) => (
-            <Card key={doc.id} className="hover:shadow-md transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-primary/10">
-                      <FileText className="w-6 h-6 text-primary" />
+        {!loading && filteredDocuments.length > 0 && (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredDocuments.map((doc) => (
+              <Card key={doc.id} className="hover:shadow-md transition-shadow">
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-primary/10">
+                        {getFileIcon(doc.file_type)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <CardTitle className="text-sm font-medium truncate">
+                          {doc.title}
+                        </CardTitle>
+                        <CardDescription className="text-xs">
+                          {doc.file_type.toUpperCase()} {doc.file_size && `• ${formatFileSize(doc.file_size)}`}
+                        </CardDescription>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <CardTitle className="text-sm font-medium truncate">
-                        {doc.name}
-                      </CardTitle>
-                      <CardDescription className="text-xs">
-                        {doc.type} • {doc.size}
-                      </CardDescription>
-                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <MoreVertical className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="bg-popover">
+                        <DropdownMenuItem>
+                          <Eye className="w-4 h-4 mr-2" />
+                          Voir
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          className="text-destructive"
+                          onClick={() => deleteDocument(doc.id, doc.file_name)}
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Supprimer
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreVertical className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
-                        <Eye className="w-4 h-4 mr-2" />
-                        Voir
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive">
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Supprimer
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <p className="text-xs text-muted-foreground mb-4">
-                  Importé le {new Date(doc.uploadedAt).toLocaleDateString('fr-FR')}
-                </p>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" className="flex-1">
-                    <Brain className="w-3 h-3 mr-1" />
-                    Quiz
-                  </Button>
-                  <Button variant="outline" size="sm" className="flex-1">
-                    <BookOpen className="w-3 h-3 mr-1" />
-                    Flashcards
-                  </Button>
-                  <Button variant="outline" size="sm" className="flex-1">
-                    <Sparkles className="w-3 h-3 mr-1" />
-                    Résumé
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="flex items-center justify-between mb-4">
+                    <p className="text-xs text-muted-foreground">
+                      Importé le {new Date(doc.created_at).toLocaleDateString('fr-FR')}
+                    </p>
+                    {getStatusBadge(doc.status)}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" className="flex-1" disabled={doc.status !== 'completed'}>
+                      <Brain className="w-3 h-3 mr-1" />
+                      Quiz
+                    </Button>
+                    <Button variant="outline" size="sm" className="flex-1" disabled={doc.status !== 'completed'}>
+                      <BookOpen className="w-3 h-3 mr-1" />
+                      Flashcards
+                    </Button>
+                    <Button variant="outline" size="sm" className="flex-1" disabled={doc.status !== 'completed'}>
+                      <Sparkles className="w-3 h-3 mr-1" />
+                      Résumé
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
 
         {/* Empty State */}
-        {filteredDocuments.length === 0 && (
+        {!loading && filteredDocuments.length === 0 && (
           <Card className="p-12 text-center">
             <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-lg font-semibold mb-2">Aucun document trouvé</h3>
@@ -141,10 +246,7 @@ const Documents = () => {
                 ? "Aucun document ne correspond à votre recherche"
                 : "Commencez par importer votre premier document"}
             </p>
-            <Button>
-              <Upload className="w-4 h-4 mr-2" />
-              Importer un document
-            </Button>
+            <DocumentUpload onUploadComplete={fetchDocuments} />
           </Card>
         )}
       </div>
