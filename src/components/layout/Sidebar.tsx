@@ -103,9 +103,11 @@ export const Sidebar = () => {
         {/* Logo */}
         <div className="p-6 border-b border-border">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
-              <Sparkles className="w-6 h-6 text-primary-foreground" />
-            </div>
+            <img 
+              src="/exavy-logo.jpg" 
+              alt="EXAVY Logo" 
+              className="w-10 h-10 rounded-xl object-cover"
+            />
             <span className="font-bold text-xl text-foreground">EXAVY</span>
           </div>
         </div>
