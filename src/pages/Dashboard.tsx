@@ -38,7 +38,7 @@ const Dashboard = () => {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold">
-              Bonjour, {user?.name || 'Étudiant'} 👋
+              Bonjour, {user?.email?.split('@')[0] || 'Étudiant'} 👋
             </h1>
             <p className="text-muted-foreground">
               Prêt à continuer votre apprentissage ?
