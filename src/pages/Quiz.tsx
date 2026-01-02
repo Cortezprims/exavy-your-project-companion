@@ -1,10 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Brain,
   Play,
@@ -15,8 +18,11 @@ import {
   ArrowRight,
   Loader2,
   FileText,
-  RefreshCw
+  RefreshCw,
+  ArrowLeft
 } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import { fr } from "date-fns/locale";
 
 interface Question {
   question: string;
@@ -25,35 +31,23 @@ interface Question {
   explanation: string;
 }
 
-interface Quiz {
+interface QuizData {
   id: string;
   title: string;
   questions: Question[];
+  difficulty: string;
+  created_at: string;
+  document_id: string;
 }
 
-const sampleQuestions: Question[] = [
-  {
-    question: "Quelle est la capitale de la France ?",
-    options: ["Lyon", "Paris", "Marseille", "Bordeaux"],
-    correctIndex: 1,
-    explanation: "Paris est la capitale de la France depuis des siècles."
-  },
-  {
-    question: "Combien de continents y a-t-il sur Terre ?",
-    options: ["5", "6", "7", "8"],
-    correctIndex: 2,
-    explanation: "Il y a 7 continents : Afrique, Antarctique, Asie, Europe, Amérique du Nord, Océanie et Amérique du Sud."
-  },
-  {
-    question: "Quel est le plus grand océan du monde ?",
-    options: ["Atlantique", "Indien", "Arctique", "Pacifique"],
-    correctIndex: 3,
-    explanation: "L'océan Pacifique est le plus grand et le plus profond des océans."
-  }
-];
-
 const Quiz = () => {
-  const [activeQuiz, setActiveQuiz] = useState<Quiz | null>(null);
+  const { documentId } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  
+  const [quizzes, setQuizzes] = useState<QuizData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeQuiz, setActiveQuiz] = useState<QuizData | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
@@ -61,28 +55,84 @@ const Quiz = () => {
   const [answers, setAnswers] = useState<boolean[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const generateQuiz = async () => {
-    setIsGenerating(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    setActiveQuiz({
-      id: Date.now().toString(),
-      title: "Quiz Express",
-      questions: sampleQuestions,
-    });
+  useEffect(() => {
+    if (user) {
+      if (documentId) {
+        fetchQuizForDocument();
+      } else {
+        fetchAllQuizzes();
+      }
+    }
+  }, [user, documentId]);
+
+  const fetchAllQuizzes = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('quizzes')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const parsedQuizzes = (data || []).map(quiz => ({
+        ...quiz,
+        questions: Array.isArray(quiz.questions) ? quiz.questions as unknown as Question[] : []
+      }));
+      
+      setQuizzes(parsedQuizzes);
+    } catch (error) {
+      console.error('Error fetching quizzes:', error);
+      toast.error('Erreur lors du chargement des quiz');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchQuizForDocument = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('quizzes')
+        .select('*')
+        .eq('document_id', documentId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const parsedQuizzes = (data || []).map(quiz => ({
+        ...quiz,
+        questions: Array.isArray(quiz.questions) ? quiz.questions as unknown as Question[] : []
+      }));
+      
+      setQuizzes(parsedQuizzes);
+      
+      // Auto-start the latest quiz if exists
+      if (parsedQuizzes.length > 0) {
+        startQuiz(parsedQuizzes[0]);
+      }
+    } catch (error) {
+      console.error('Error fetching quiz:', error);
+      toast.error('Erreur lors du chargement du quiz');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const startQuiz = (quiz: QuizData) => {
+    setActiveQuiz(quiz);
     setCurrentQuestionIndex(0);
     setSelectedAnswer(null);
     setShowResult(false);
     setScore(0);
     setAnswers([]);
-    setIsGenerating(false);
   };
 
   const handleAnswer = (index: number) => {
-    if (selectedAnswer !== null) return;
+    if (selectedAnswer !== null || !activeQuiz) return;
     setSelectedAnswer(index);
     
-    const isCorrect = index === activeQuiz?.questions[currentQuestionIndex].correctIndex;
+    const isCorrect = index === activeQuiz.questions[currentQuestionIndex].correctIndex;
     if (isCorrect) setScore(s => s + 1);
     setAnswers(prev => [...prev, isCorrect]);
   };
@@ -107,49 +157,66 @@ const Quiz = () => {
     setAnswers([]);
   };
 
-  // Active quiz view
-  if (activeQuiz) {
-    if (showResult) {
-      const percentage = Math.round((score / activeQuiz.questions.length) * 100);
-      return (
-        <MainLayout>
-          <div className="p-6 md:p-8 max-w-2xl mx-auto">
-            <Card className="text-center py-12">
-              <CardContent>
-                <div className={`w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center ${
-                  percentage >= 70 ? 'bg-green-100' : percentage >= 50 ? 'bg-amber-100' : 'bg-red-100'
-                }`}>
-                  <Trophy className={`w-10 h-10 ${
-                    percentage >= 70 ? 'text-green-600' : percentage >= 50 ? 'text-amber-600' : 'text-red-600'
-                  }`} />
-                </div>
-                <h2 className="text-2xl font-bold mb-2">Quiz terminé !</h2>
-                <p className="text-muted-foreground mb-6">{activeQuiz.title}</p>
-                <div className="text-5xl font-bold text-foreground mb-4">{percentage}%</div>
-                <p className="text-lg text-muted-foreground mb-8">
-                  {score} / {activeQuiz.questions.length} bonnes réponses
-                </p>
-                <div className="flex justify-center gap-4">
-                  <Button variant="outline" onClick={resetQuiz}>
-                    Retour aux quiz
-                  </Button>
-                  <Button onClick={generateQuiz}>
-                    <RefreshCw className="w-4 h-4 mr-2" />
-                    Nouveau quiz
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </MainLayout>
-      );
-    }
+  // Loading state
+  if (loading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </MainLayout>
+    );
+  }
 
+  // Active quiz - show result
+  if (activeQuiz && showResult) {
+    const percentage = Math.round((score / activeQuiz.questions.length) * 100);
+    return (
+      <MainLayout>
+        <div className="p-6 md:p-8 max-w-2xl mx-auto">
+          <Card className="text-center py-12">
+            <CardContent>
+              <div className={`w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center ${
+                percentage >= 70 ? 'bg-green-100' : percentage >= 50 ? 'bg-amber-100' : 'bg-red-100'
+              }`}>
+                <Trophy className={`w-10 h-10 ${
+                  percentage >= 70 ? 'text-green-600' : percentage >= 50 ? 'text-amber-600' : 'text-red-600'
+                }`} />
+              </div>
+              <h2 className="text-2xl font-bold mb-2">Quiz terminé !</h2>
+              <p className="text-muted-foreground mb-6">{activeQuiz.title}</p>
+              <div className="text-5xl font-bold text-foreground mb-4">{percentage}%</div>
+              <p className="text-lg text-muted-foreground mb-8">
+                {score} / {activeQuiz.questions.length} bonnes réponses
+              </p>
+              <div className="flex justify-center gap-4">
+                <Button variant="outline" onClick={resetQuiz}>
+                  Retour aux quiz
+                </Button>
+                <Button onClick={() => startQuiz(activeQuiz)}>
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Recommencer
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  // Active quiz - show question
+  if (activeQuiz) {
     const question = activeQuiz.questions[currentQuestionIndex];
     
     return (
       <MainLayout>
         <div className="p-6 md:p-8 max-w-2xl mx-auto">
+          <Button variant="ghost" onClick={resetQuiz} className="mb-4">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Quitter le quiz
+          </Button>
+          
           <div className="mb-6">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-muted-foreground">{activeQuiz.title}</span>
@@ -198,7 +265,7 @@ const Quiz = () => {
                 );
               })}
 
-              {selectedAnswer !== null && (
+              {selectedAnswer !== null && question.explanation && (
                 <div className="mt-6 p-4 rounded-xl bg-muted">
                   <p className="text-sm font-medium mb-1">Explication</p>
                   <p className="text-sm text-muted-foreground">{question.explanation}</p>
@@ -231,42 +298,63 @@ const Quiz = () => {
   return (
     <MainLayout>
       <div className="p-6 md:p-8">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+        <div className="ml-16 md:ml-0 flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold text-foreground mb-2">Quiz</h1>
             <p className="text-muted-foreground">Testez vos connaissances avec des quiz générés par IA</p>
           </div>
-          <Button onClick={generateQuiz} disabled={isGenerating}>
-            {isGenerating ? (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            ) : (
-              <Brain className="w-4 h-4 mr-2" />
-            )}
-            Quiz Express
+          <Button onClick={() => navigate('/documents')}>
+            <FileText className="w-4 h-4 mr-2" />
+            Générer depuis un document
           </Button>
         </div>
 
-        {/* Documents to quiz */}
-        <div className="mb-8">
-          <h2 className="font-semibold text-lg mb-4">Générer depuis un document</h2>
-          <Card className="text-center py-8">
+        {quizzes.length === 0 ? (
+          <Card className="text-center py-12">
             <CardContent>
-              <FileText className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
-              <p className="text-muted-foreground">Importez des documents pour générer des quiz personnalisés</p>
+              <Brain className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+              <h3 className="font-semibold text-lg mb-2">Aucun quiz disponible</h3>
+              <p className="text-muted-foreground mb-6">
+                Importez un document pour générer votre premier quiz
+              </p>
+              <Button onClick={() => navigate('/documents')}>
+                <FileText className="w-4 h-4 mr-2" />
+                Aller aux documents
+              </Button>
             </CardContent>
           </Card>
-        </div>
-
-        {/* Recent results placeholder */}
-        <div>
-          <h2 className="font-semibold text-lg mb-4">Résultats récents</h2>
-          <Card className="text-center py-8">
-            <CardContent>
-              <Trophy className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
-              <p className="text-muted-foreground">Aucun quiz complété pour le moment</p>
-            </CardContent>
-          </Card>
-        </div>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {quizzes.map((quiz) => (
+              <Card key={quiz.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => startQuiz(quiz)}>
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <CardTitle className="text-lg line-clamp-2">{quiz.title}</CardTitle>
+                    <Badge variant={quiz.difficulty === 'hard' ? 'destructive' : quiz.difficulty === 'medium' ? 'secondary' : 'default'}>
+                      {quiz.difficulty === 'hard' ? 'Difficile' : quiz.difficulty === 'medium' ? 'Moyen' : 'Facile'}
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <Brain className="w-4 h-4" />
+                      {quiz.questions.length} questions
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-4 h-4" />
+                      {formatDistanceToNow(new Date(quiz.created_at), { addSuffix: true, locale: fr })}
+                    </span>
+                  </div>
+                  <Button className="w-full mt-4" variant="outline">
+                    <Play className="w-4 h-4 mr-2" />
+                    Commencer
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     </MainLayout>
   );

@@ -9,9 +9,11 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { ArrowLeft, Loader2, Download, Lock, RefreshCw, Plus, X, Lightbulb, HelpCircle } from 'lucide-react';
+import { ArrowLeft, Loader2, Download, Lock, RefreshCw, Plus, X, Lightbulb, HelpCircle, FileText, Clock, Brain } from 'lucide-react';
 import { toast } from 'sonner';
 import { toPng } from 'html-to-image';
+import { formatDistanceToNow } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 interface MindMapNode {
   id: string;
@@ -24,6 +26,7 @@ interface MindMapData {
   title: string;
   nodes: MindMapNode[];
   document_id: string;
+  created_at: string;
 }
 
 const COLORS = [
@@ -103,9 +106,10 @@ const MindMap = () => {
   
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
-  const [mindMap, setMindMap] = useState<MindMapData | null>(null);
+  const [mindMaps, setMindMaps] = useState<MindMapData[]>([]);
+  const [activeMindMap, setActiveMindMap] = useState<MindMapData | null>(null);
   const [documentTitle, setDocumentTitle] = useState('');
-  const [isPremium, setIsPremium] = useState(false); // TODO: Check actual subscription
+  const [isPremium, setIsPremium] = useState(false);
   
   // Customization state
   const [customizeOpen, setCustomizeOpen] = useState(false);
@@ -115,12 +119,40 @@ const MindMap = () => {
   const [regenerating, setRegenerating] = useState(false);
 
   useEffect(() => {
-    if (documentId && user) {
-      fetchOrGenerateMindMap();
+    if (user) {
+      if (documentId) {
+        fetchMindMapForDocument();
+      } else {
+        fetchAllMindMaps();
+      }
     }
   }, [documentId, user]);
 
-  const fetchOrGenerateMindMap = async () => {
+  const fetchAllMindMaps = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('mind_maps')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const parsedMindMaps = (data || []).map(mm => ({
+        ...mm,
+        nodes: Array.isArray(mm.nodes) ? mm.nodes as unknown as MindMapNode[] : []
+      }));
+
+      setMindMaps(parsedMindMaps);
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Erreur lors du chargement des cartes mentales');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchMindMapForDocument = async () => {
     setLoading(true);
     try {
       // Get document title
@@ -128,7 +160,7 @@ const MindMap = () => {
         .from('documents')
         .select('title')
         .eq('id', documentId)
-        .single();
+        .maybeSingle();
       
       if (docData) {
         setDocumentTitle(docData.title);
@@ -147,7 +179,7 @@ const MindMap = () => {
         const nodes = Array.isArray(existingMindMap.nodes) 
           ? existingMindMap.nodes as unknown as MindMapNode[]
           : [];
-        setMindMap({
+        setActiveMindMap({
           ...existingMindMap,
           nodes
         });
@@ -182,7 +214,7 @@ const MindMap = () => {
         const nodes = Array.isArray(data.mindMap.nodes) 
           ? data.mindMap.nodes as unknown as MindMapNode[]
           : [];
-        setMindMap({
+        setActiveMindMap({
           ...data.mindMap,
           nodes
         });
@@ -201,9 +233,8 @@ const MindMap = () => {
     setCustomizeOpen(false);
     
     try {
-      // Delete existing mind map
-      if (mindMap) {
-        await supabase.from('mind_maps').delete().eq('id', mindMap.id);
+      if (activeMindMap) {
+        await supabase.from('mind_maps').delete().eq('id', activeMindMap.id);
       }
       
       await generateMindMap(
@@ -259,6 +290,15 @@ const MindMap = () => {
     }
   };
 
+  const viewMindMap = (mindMap: MindMapData) => {
+    setActiveMindMap(mindMap);
+  };
+
+  const exitMindMap = () => {
+    setActiveMindMap(null);
+  };
+
+  // Loading state
   if (loading || generating || regenerating) {
     return (
       <MainLayout>
@@ -272,169 +312,208 @@ const MindMap = () => {
     );
   }
 
-  if (!mindMap) {
+  // Active mind map view
+  if (activeMindMap) {
     return (
       <MainLayout>
         <div className="p-6">
-          <Button variant="ghost" onClick={() => navigate('/documents')}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Retour aux documents
-          </Button>
-          <div className="text-center mt-12">
-            <p className="text-muted-foreground">Aucune carte mentale disponible</p>
-            <Button className="mt-4" onClick={() => generateMindMap()}>
-              Générer une carte mentale
+          <div className="flex items-center justify-between mb-6">
+            <Button variant="ghost" onClick={documentId ? () => navigate('/documents') : exitMindMap}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              {documentId ? 'Retour aux documents' : 'Retour aux cartes mentales'}
             </Button>
+            
+            <div className="flex gap-2">
+              <Dialog open={customizeOpen} onOpenChange={setCustomizeOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline">
+                    <Lightbulb className="w-4 h-4 mr-2" />
+                    Personnaliser
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-lg">
+                  <DialogHeader>
+                    <DialogTitle>Personnaliser la carte mentale</DialogTitle>
+                  </DialogHeader>
+                  
+                  <div className="space-y-6 py-4">
+                    <div className="space-y-3">
+                      <label className="text-sm font-medium flex items-center gap-2">
+                        <Lightbulb className="w-4 h-4" />
+                        Points clés à mettre en avant (max 5)
+                      </label>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Ex: Les causes principales..."
+                          value={newFocusPoint}
+                          onChange={(e) => setNewFocusPoint(e.target.value)}
+                          onKeyPress={(e) => e.key === 'Enter' && addFocusPoint()}
+                          disabled={focusPoints.length >= 5}
+                        />
+                        <Button 
+                          variant="outline" 
+                          size="icon" 
+                          onClick={addFocusPoint}
+                          disabled={focusPoints.length >= 5}
+                        >
+                          <Plus className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      {focusPoints.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {focusPoints.map((point, index) => (
+                            <Badge key={index} variant="secondary" className="pr-1">
+                              {point}
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-4 w-4 ml-1 hover:bg-transparent"
+                                onClick={() => removeFocusPoint(index)}
+                              >
+                                <X className="w-3 h-3" />
+                              </Button>
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <label className="text-sm font-medium flex items-center gap-2">
+                        <HelpCircle className="w-4 h-4" />
+                        Partie du document à éclaircir
+                      </label>
+                      <Textarea
+                        placeholder="Décrivez une partie du document que vous n'avez pas bien comprise..."
+                        value={clarifyText}
+                        onChange={(e) => setClarifyText(e.target.value)}
+                        rows={3}
+                      />
+                    </div>
+                  </div>
+                  
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setCustomizeOpen(false)}>
+                      Annuler
+                    </Button>
+                    <Button onClick={handleRegenerate}>
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Régénérer
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+              
+              <Button 
+                variant={isPremium ? "default" : "outline"}
+                onClick={handleDownload}
+                className={!isPremium ? "opacity-75" : ""}
+              >
+                {isPremium ? (
+                  <Download className="w-4 h-4 mr-2" />
+                ) : (
+                  <Lock className="w-4 h-4 mr-2" />
+                )}
+                Télécharger PNG
+                {!isPremium && <Badge variant="secondary" className="ml-2 text-xs">Premium</Badge>}
+              </Button>
+            </div>
           </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <span>🧠</span>
+                {activeMindMap.title || documentTitle}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div 
+                ref={mindMapRef}
+                className="overflow-auto bg-gradient-to-br from-background to-muted/30 rounded-lg border min-h-[400px]"
+              >
+                <MindMapViewer nodes={activeMindMap.nodes} title={activeMindMap.title} />
+              </div>
+            </CardContent>
+          </Card>
+
+          {!isPremium && (
+            <Card className="mt-6 border-primary/50 bg-primary/5">
+              <CardContent className="flex items-center justify-between p-6">
+                <div>
+                  <h3 className="font-semibold flex items-center gap-2">
+                    <Lock className="w-4 h-4" />
+                    Passez à Premium
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Téléchargez vos cartes mentales en haute qualité
+                  </p>
+                </div>
+                <Button onClick={() => navigate('/subscription')}>
+                  Voir les offres
+                </Button>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </MainLayout>
     );
   }
 
+  // Mind map list view
   return (
     <MainLayout>
-      <div className="p-6">
-        <div className="flex items-center justify-between mb-6">
-          <Button variant="ghost" onClick={() => navigate('/documents')}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Retour aux documents
-          </Button>
-          
-          <div className="flex gap-2">
-            {/* Customize button */}
-            <Dialog open={customizeOpen} onOpenChange={setCustomizeOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline">
-                  <Lightbulb className="w-4 h-4 mr-2" />
-                  Personnaliser
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-lg">
-                <DialogHeader>
-                  <DialogTitle>Personnaliser la carte mentale</DialogTitle>
-                </DialogHeader>
-                
-                <div className="space-y-6 py-4">
-                  {/* Focus points */}
-                  <div className="space-y-3">
-                    <label className="text-sm font-medium flex items-center gap-2">
-                      <Lightbulb className="w-4 h-4" />
-                      Points clés à mettre en avant (max 5)
-                    </label>
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="Ex: Les causes principales..."
-                        value={newFocusPoint}
-                        onChange={(e) => setNewFocusPoint(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && addFocusPoint()}
-                        disabled={focusPoints.length >= 5}
-                      />
-                      <Button 
-                        variant="outline" 
-                        size="icon" 
-                        onClick={addFocusPoint}
-                        disabled={focusPoints.length >= 5}
-                      >
-                        <Plus className="w-4 h-4" />
-                      </Button>
-                    </div>
-                    {focusPoints.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {focusPoints.map((point, index) => (
-                          <Badge key={index} variant="secondary" className="pr-1">
-                            {point}
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-4 w-4 ml-1 hover:bg-transparent"
-                              onClick={() => removeFocusPoint(index)}
-                            >
-                              <X className="w-3 h-3" />
-                            </Button>
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Clarification request */}
-                  <div className="space-y-3">
-                    <label className="text-sm font-medium flex items-center gap-2">
-                      <HelpCircle className="w-4 h-4" />
-                      Partie du document à éclaircir
-                    </label>
-                    <Textarea
-                      placeholder="Décrivez une partie du document que vous n'avez pas bien comprise et que vous aimeriez voir développée dans la carte mentale..."
-                      value={clarifyText}
-                      onChange={(e) => setClarifyText(e.target.value)}
-                      rows={3}
-                    />
-                  </div>
-                </div>
-                
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setCustomizeOpen(false)}>
-                    Annuler
-                  </Button>
-                  <Button onClick={handleRegenerate}>
-                    <RefreshCw className="w-4 h-4 mr-2" />
-                    Régénérer
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-            
-            {/* Download button */}
-            <Button 
-              variant={isPremium ? "default" : "outline"}
-              onClick={handleDownload}
-              className={!isPremium ? "opacity-75" : ""}
-            >
-              {isPremium ? (
-                <Download className="w-4 h-4 mr-2" />
-              ) : (
-                <Lock className="w-4 h-4 mr-2" />
-              )}
-              Télécharger PNG
-              {!isPremium && <Badge variant="secondary" className="ml-2 text-xs">Premium</Badge>}
-            </Button>
+      <div className="p-6 md:p-8">
+        <div className="ml-16 md:ml-0 flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground mb-2">Cartes Mentales</h1>
+            <p className="text-muted-foreground">Visualisez vos connaissances avec des cartes mentales</p>
           </div>
+          <Button onClick={() => navigate('/documents')}>
+            <FileText className="w-4 h-4 mr-2" />
+            Générer depuis un document
+          </Button>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <span>🧠</span>
-              {mindMap.title || documentTitle}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div 
-              ref={mindMapRef}
-              className="overflow-auto bg-gradient-to-br from-background to-muted/30 rounded-lg border min-h-[400px]"
-            >
-              <MindMapViewer nodes={mindMap.nodes} title={mindMap.title} />
-            </div>
-          </CardContent>
-        </Card>
-
-        {!isPremium && (
-          <Card className="mt-6 border-primary/50 bg-primary/5">
-            <CardContent className="flex items-center justify-between p-6">
-              <div>
-                <h3 className="font-semibold flex items-center gap-2">
-                  <Lock className="w-4 h-4" />
-                  Passez à Premium
-                </h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Téléchargez vos cartes mentales en haute qualité et accédez à toutes les fonctionnalités
-                </p>
-              </div>
-              <Button onClick={() => navigate('/subscription')}>
-                Voir les offres
+        {mindMaps.length === 0 ? (
+          <Card className="text-center py-12">
+            <CardContent>
+              <Brain className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+              <h3 className="font-semibold text-lg mb-2">Aucune carte mentale disponible</h3>
+              <p className="text-muted-foreground mb-6">
+                Importez un document pour générer votre première carte mentale
+              </p>
+              <Button onClick={() => navigate('/documents')}>
+                <FileText className="w-4 h-4 mr-2" />
+                Aller aux documents
               </Button>
             </CardContent>
           </Card>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {mindMaps.map((mindMap) => (
+              <Card key={mindMap.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => viewMindMap(mindMap)}>
+                <CardHeader>
+                  <CardTitle className="text-lg line-clamp-2">{mindMap.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
+                    <span className="flex items-center gap-1">
+                      <Brain className="w-4 h-4" />
+                      {mindMap.nodes.length} branches
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-4 h-4" />
+                      {formatDistanceToNow(new Date(mindMap.created_at), { addSuffix: true, locale: fr })}
+                    </span>
+                  </div>
+                  <Button className="w-full" variant="outline">
+                    Voir la carte
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         )}
       </div>
     </MainLayout>

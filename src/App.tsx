@@ -93,9 +93,19 @@ const App = () => (
                 <Documents />
               </ProtectedRoute>
             } />
+            <Route path="/quiz" element={
+              <ProtectedRoute>
+                <Quiz />
+              </ProtectedRoute>
+            } />
             <Route path="/quiz/:documentId" element={
               <ProtectedRoute>
                 <Quiz />
+              </ProtectedRoute>
+            } />
+            <Route path="/flashcards" element={
+              <ProtectedRoute>
+                <Flashcards />
               </ProtectedRoute>
             } />
             <Route path="/flashcards/:documentId" element={
@@ -108,9 +118,19 @@ const App = () => (
                 <ChatAI />
               </ProtectedRoute>
             } />
+            <Route path="/summaries" element={
+              <ProtectedRoute>
+                <Summaries />
+              </ProtectedRoute>
+            } />
             <Route path="/summaries/:documentId" element={
               <ProtectedRoute>
                 <Summaries />
+              </ProtectedRoute>
+            } />
+            <Route path="/mindmap" element={
+              <ProtectedRoute>
+                <MindMap />
               </ProtectedRoute>
             } />
             <Route path="/mindmap/:documentId" element={
