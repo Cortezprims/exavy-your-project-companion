@@ -2,30 +2,54 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
 @layer base {
   :root {
+    /* Background colors - Light Mode (#FFFFFF, #F5F7FA) */
     --background: 0 0% 100%;
     --foreground: 0 0% 10%;
+
     --card: 0 0% 100%;
     --card-foreground: 0 0% 10%;
+
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 10%;
+
+    /* Primary color - Blue #2196F3 */
     --primary: 207 90% 54%;
     --primary-foreground: 0 0% 100%;
+
+    /* Secondary color - Green #4CAF50 */
     --secondary: 122 39% 49%;
     --secondary-foreground: 0 0% 100%;
+
+    /* Muted colors - Gray */
     --muted: 220 14% 96%;
     --muted-foreground: 220 9% 46%;
+
+    /* Accent colors */
     --accent: 220 14% 96%;
     --accent-foreground: 207 90% 54%;
+
+    /* Destructive - Red #F44336 */
     --destructive: 4 90% 58%;
     --destructive-foreground: 0 0% 100%;
+
+    /* Warning - Orange #FF9800 */
     --warning: 36 100% 50%;
     --warning-foreground: 0 0% 100%;
+
+    /* Border and input */
     --border: 220 13% 91%;
     --input: 220 13% 91%;
     --ring: 207 90% 54%;
+
     --radius: 0.5rem;
+
+    /* Sidebar */
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 207 90% 54%;
@@ -34,30 +58,60 @@
     --sidebar-accent-foreground: 207 90% 54%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 207 90% 54%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(207, 90%, 54%), hsl(207, 90%, 64%));
+    --gradient-secondary: linear-gradient(135deg, hsl(122, 39%, 49%), hsl(122, 39%, 59%));
+    --gradient-hero: linear-gradient(180deg, hsl(0, 0%, 100%), hsl(220, 14%, 96%));
+    
+    /* Shadows */
+    --shadow-soft: 0 4px 20px -2px hsl(207, 90%, 54% / 0.1);
+    --shadow-medium: 0 8px 30px -4px hsl(207, 90%, 54% / 0.15);
+    --shadow-glow: 0 0 40px hsl(207, 90%, 54% / 0.3);
+
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .dark {
+    /* Background colors - Dark Mode (#121212, #1E1E1E) */
     --background: 0 0% 7%;
     --foreground: 0 0% 88%;
+
     --card: 0 0% 12%;
     --card-foreground: 0 0% 88%;
+
     --popover: 0 0% 12%;
     --popover-foreground: 0 0% 88%;
+
+    /* Primary color - Blue Neon #42A5F5 */
     --primary: 207 89% 61%;
     --primary-foreground: 0 0% 100%;
+
+    /* Secondary color - Green Neon #66BB6A */
     --secondary: 123 38% 57%;
     --secondary-foreground: 0 0% 100%;
+
+    /* Muted colors */
     --muted: 0 0% 12%;
     --muted-foreground: 0 0% 62%;
+
+    /* Accent colors */
     --accent: 0 0% 12%;
     --accent-foreground: 207 89% 61%;
+
+    /* Destructive - Red Bright #EF5350 */
     --destructive: 4 82% 63%;
     --destructive-foreground: 0 0% 100%;
+
+    /* Warning - Orange Bright #FFA726 */
     --warning: 36 100% 58%;
     --warning-foreground: 0 0% 100%;
+
     --border: 0 0% 15%;
     --input: 0 0% 15%;
     --ring: 207 89% 61%;
+
+    /* Sidebar */
     --sidebar-background: 0 0% 10%;
     --sidebar-foreground: 0 0% 88%;
     --sidebar-primary: 207 89% 61%;
@@ -66,6 +120,16 @@
     --sidebar-accent-foreground: 207 89% 61%;
     --sidebar-border: 0 0% 15%;
     --sidebar-ring: 207 89% 61%;
+
+    /* Dark mode gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(207, 89%, 61%), hsl(207, 89%, 71%));
+    --gradient-secondary: linear-gradient(135deg, hsl(123, 38%, 57%), hsl(123, 38%, 67%));
+    --gradient-hero: linear-gradient(180deg, hsl(0, 0%, 7%), hsl(0, 0%, 12%));
+    
+    /* Dark mode shadows */
+    --shadow-soft: 0 4px 20px -2px hsl(207, 89%, 61% / 0.2);
+    --shadow-medium: 0 8px 30px -4px hsl(207, 89%, 61% / 0.25);
+    --shadow-glow: 0 0 40px hsl(207, 89%, 61% / 0.4);
   }
 }
 
@@ -73,7 +137,70 @@
   * {
     @apply border-border;
   }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans text-base;
+  }
+
+  h1 {
+    @apply font-display text-[28px] font-bold leading-tight;
+  }
+
+  h2 {
+    @apply font-display text-2xl font-semibold leading-tight;
+  }
+
+  h3 {
+    @apply font-display text-xl font-semibold leading-tight;
+  }
+
+  h4 {
+    @apply font-display text-lg font-semibold leading-tight;
+  }
+
+  h5, h6 {
+    @apply font-display text-base font-semibold leading-tight;
+  }
+
+  p {
+    @apply text-base leading-relaxed;
+  }
+
+  small {
+    @apply text-sm;
+  }
+}
+
+@layer utilities {
+  .animate-in {
+    animation-fill-mode: backwards;
+  }
+
+  .fade-in {
+    animation-name: fadeIn;
+  }
+
+  .slide-in-from-bottom-4 {
+    animation-name: slideInFromBottom;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideInFromBottom {
+    from {
+      opacity: 0;
+      transform: translateY(1rem);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 }
