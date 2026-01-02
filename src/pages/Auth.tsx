@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
 import { Sparkles, Mail, Lock, User, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { TermsDialog } from '@/components/auth/TermsDialog';
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -18,6 +19,8 @@ const Auth = () => {
   const [signupName, setSignupName] = useState('');
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
+  const [showTermsDialog, setShowTermsDialog] = useState(false);
+  const [pendingSignup, setPendingSignup] = useState<{ email: string; password: string } | null>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,7 +53,7 @@ const Auth = () => {
     }
   };
 
-  const handleSignup = async (e: React.FormEvent) => {
+  const handleSignupSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!signupEmail || !signupPassword) {
@@ -63,9 +66,17 @@ const Auth = () => {
       return;
     }
 
+    // Store the signup data and show terms dialog
+    setPendingSignup({ email: signupEmail, password: signupPassword });
+    setShowTermsDialog(true);
+  };
+
+  const handleTermsAccepted = async () => {
+    if (!pendingSignup) return;
+
     setLoading(true);
     try {
-      const { error } = await signUp(signupEmail, signupPassword);
+      const { error } = await signUp(pendingSignup.email, pendingSignup.password);
       if (error) {
         if (error.message.includes('already registered')) {
           toast.error('Cet email est déjà utilisé');
@@ -81,6 +92,7 @@ const Auth = () => {
       toast.error('Erreur lors de la création du compte');
     } finally {
       setLoading(false);
+      setPendingSignup(null);
     }
   };
 
@@ -151,7 +163,7 @@ const Auth = () => {
             </TabsContent>
             
             <TabsContent value="signup">
-              <form onSubmit={handleSignup} className="space-y-4">
+              <form onSubmit={handleSignupSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="signup-name">Nom (optionnel)</Label>
                   <div className="relative">
@@ -211,11 +223,20 @@ const Auth = () => {
                     'Créer un compte'
                   )}
                 </Button>
+                <p className="text-xs text-center text-muted-foreground">
+                  En créant un compte, vous acceptez nos conditions d'utilisation
+                </p>
               </form>
             </TabsContent>
           </Tabs>
         </CardContent>
       </Card>
+
+      <TermsDialog
+        open={showTermsDialog}
+        onOpenChange={setShowTermsDialog}
+        onAccept={handleTermsAccepted}
+      />
     </div>
   );
 };
