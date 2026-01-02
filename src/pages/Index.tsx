@@ -78,9 +78,11 @@ const Index = () => {
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
         <nav className="container mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-primary-foreground" />
-            </div>
+            <img 
+              src="/exavy-logo.jpg" 
+              alt="EXAVY Logo" 
+              className="w-8 h-8 rounded-lg object-cover"
+            />
             <span className="font-bold text-xl text-foreground">EXAVY</span>
           </div>
           <div className="flex items-center gap-4">
@@ -258,9 +260,11 @@ const Index = () => {
         <div className="container mx-auto max-w-6xl">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-primary-foreground" />
-              </div>
+              <img 
+                src="/exavy-logo.jpg" 
+                alt="EXAVY Logo" 
+                className="w-8 h-8 rounded-lg object-cover"
+              />
               <span className="font-bold text-xl text-foreground">EXAVY</span>
             </div>
             <p className="text-muted-foreground text-sm">
