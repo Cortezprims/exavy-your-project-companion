@@ -5,8 +5,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Upload, FileText, Image, Music, X, Check, Loader2 } from 'lucide-react';
+import { Upload, FileText, Image, Music, X, Check, Loader2, Lock, Crown } from 'lucide-react';
 import { toast } from 'sonner';
+import { Badge } from '@/components/ui/badge';
 
 interface DocumentUploadProps {
   onUploadComplete?: () => void;
@@ -32,11 +33,18 @@ const ACCEPTED_TYPES = {
   'audio/x-m4a': ['.m4a'],
 };
 
+// Premium-only file types
+const PREMIUM_FILE_TYPES = ['audio/mpeg', 'audio/mp4', 'audio/wav', 'audio/x-m4a', 'image/jpeg', 'image/png'];
+
 const getFileType = (mimeType: string): 'pdf' | 'image' | 'audio' | 'note' => {
   if (mimeType === 'application/pdf') return 'pdf';
   if (mimeType.startsWith('image/')) return 'image';
   if (mimeType.startsWith('audio/')) return 'audio';
   return 'note';
+};
+
+const isPremiumFileType = (mimeType: string): boolean => {
+  return mimeType.startsWith('audio/') || mimeType.startsWith('image/');
 };
 
 const getFileIcon = (type: string) => {
@@ -65,6 +73,9 @@ export const DocumentUpload = ({ onUploadComplete }: DocumentUploadProps) => {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [currentFile, setCurrentFile] = useState<string>('');
+  
+  // TODO: Replace with actual subscription check
+  const isPremium = false;
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const validFiles = acceptedFiles.filter(file => {
@@ -77,10 +88,20 @@ export const DocumentUpload = ({ onUploadComplete }: DocumentUploadProps) => {
         toast.error(`Fichier trop volumineux: ${file.name} (max ${formatFileSize(maxSize)})`);
         return false;
       }
+      // Check premium restriction for audio and image files
+      if (isPremiumFileType(file.type) && !isPremium) {
+        toast.error(`${file.name}: L'import audio/image nécessite un abonnement Premium`, {
+          action: {
+            label: "Voir les offres",
+            onClick: () => window.location.href = '/subscription'
+          }
+        });
+        return false;
+      }
       return true;
     });
     setFiles(prev => [...prev, ...validFiles]);
-  }, []);
+  }, [isPremium]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -137,9 +158,16 @@ export const DocumentUpload = ({ onUploadComplete }: DocumentUploadProps) => {
           continue;
         }
 
-        // Trigger document processing in background
+        // Trigger appropriate processing based on file type
         if (docData) {
-          supabase.functions.invoke('process-document', {
+          let processingFunction = 'process-document';
+          if (fileType === 'audio') {
+            processingFunction = 'transcribe-audio';
+          } else if (fileType === 'image') {
+            processingFunction = 'analyze-image';
+          }
+          
+          supabase.functions.invoke(processingFunction, {
             body: { documentId: docData.id }
           }).then(({ error }) => {
             if (error) {
@@ -157,7 +185,7 @@ export const DocumentUpload = ({ onUploadComplete }: DocumentUploadProps) => {
       onUploadComplete?.();
     } catch (error) {
       console.error('Upload error:', error);
-      toast.error('Erreur lors de l\'upload');
+      toast.error("Erreur lors de l'upload");
     } finally {
       setUploading(false);
       setCurrentFile('');
@@ -179,6 +207,26 @@ export const DocumentUpload = ({ onUploadComplete }: DocumentUploadProps) => {
         </DialogHeader>
 
         <div className="space-y-4">
+          {/* Premium notice for audio/image */}
+          {!isPremium && (
+            <div className="flex items-center gap-2 p-3 bg-amber-500/10 rounded-lg border border-amber-500/20">
+              <Crown className="w-5 h-5 text-amber-500" />
+              <div className="flex-1">
+                <p className="text-sm font-medium">Fonctionnalités Premium</p>
+                <p className="text-xs text-muted-foreground">
+                  L'import audio (transcription) et image (analyse) nécessite Premium
+                </p>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => window.location.href = '/subscription'}
+              >
+                Passer à Premium
+              </Button>
+            </div>
+          )}
+
           {/* Dropzone */}
           <div
             {...getRootProps()}
@@ -198,9 +246,13 @@ export const DocumentUpload = ({ onUploadComplete }: DocumentUploadProps) => {
                 </p>
               </>
             )}
-            <p className="text-xs text-muted-foreground mt-4">
-              PDF (50 MB) • Images JPG/PNG (10 MB) • Audio MP3/M4A/WAV (100 MB)
-            </p>
+            <div className="text-xs text-muted-foreground mt-4 space-y-1">
+              <p>PDF (50 MB) - Gratuit</p>
+              <p className="flex items-center justify-center gap-1">
+                <Lock className="w-3 h-3" />
+                Images JPG/PNG (10 MB) • Audio MP3/M4A/WAV (100 MB) - Premium
+              </p>
+            </div>
           </div>
 
           {/* File list */}

@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { documentId, userId, questionCount = 10, difficulty = 'medium' } = await req.json();
+    const { documentId, userId, questionCount = 10, difficulty = 'medium', focusArea = '', specificPart = '' } = await req.json();
     
     if (!documentId || !userId) {
       return new Response(
@@ -51,6 +51,15 @@ serve(async (req) => {
     };
     const difficultyPrompt = difficultyMap[difficulty] || difficultyMap.medium;
 
+    // Build focus prompt if user specified a focus area or specific part
+    let focusPrompt = '';
+    if (focusArea) {
+      focusPrompt += `\n\nFOCUS SPÉCIFIQUE: Concentre-toi principalement sur le thème/concept suivant: "${focusArea}". Les questions doivent principalement porter sur ce sujet.`;
+    }
+    if (specificPart) {
+      focusPrompt += `\n\nPARTIE SPÉCIFIQUE: L'utilisateur veut des questions sur cette partie précise du document: "${specificPart}". Génère des questions uniquement sur cette section.`;
+    }
+
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -63,7 +72,7 @@ serve(async (req) => {
           {
             role: 'system',
             content: `Tu es un expert en création de quiz éducatifs. Crée des QCM en français basés sur le contenu fourni.
-${difficultyPrompt}
+${difficultyPrompt}${focusPrompt}
 
 Format de réponse STRICTEMENT en JSON:
 {
