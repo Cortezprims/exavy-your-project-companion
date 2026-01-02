@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DocumentUpload } from '@/components/documents/DocumentUpload';
+import { DocumentProcessingProgress } from '@/components/documents/DocumentProcessingProgress';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { 
@@ -210,11 +211,11 @@ const Documents = () => {
                   </div>
                 </CardHeader>
                 <CardContent className="pt-0">
-                  <div className="flex items-center justify-between mb-4">
-                    <p className="text-xs text-muted-foreground">
-                      Importé le {new Date(doc.created_at).toLocaleDateString('fr-FR')}
-                    </p>
-                    {getStatusBadge(doc.status)}
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Importé le {new Date(doc.created_at).toLocaleDateString('fr-FR')}
+                  </p>
+                  <div className="mb-4">
+                    <DocumentProcessingProgress status={doc.status} />
                   </div>
                   <div className="flex gap-2">
                     <Button variant="outline" size="sm" className="flex-1" disabled={doc.status !== 'completed'}>
