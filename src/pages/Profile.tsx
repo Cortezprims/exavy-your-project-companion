@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,10 +7,15 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { User, Bell, Globe, Palette, Save } from "lucide-react";
+import { User, Bell, Globe, Palette, Save, Camera, Lock } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const Profile = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const isPremium = false; // TODO: Replace with actual subscription check
+  
   const [formData, setFormData] = useState({
     display_name: '',
     education_level: '',
@@ -24,6 +29,31 @@ const Profile = () => {
     await new Promise(resolve => setTimeout(resolve, 500));
     toast.success("Profil mis à jour");
     setIsLoading(false);
+  };
+
+  const handleAvatarClick = () => {
+    if (!isPremium) {
+      toast.error("Photo de profil disponible uniquement avec un abonnement Premium", {
+        action: {
+          label: "Voir les offres",
+          onClick: () => window.location.href = '/subscription'
+        }
+      });
+      return;
+    }
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setAvatarUrl(e.target?.result as string);
+        toast.success("Photo de profil mise à jour");
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   return (
@@ -48,7 +78,53 @@ const Profile = () => {
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
+              {/* Profile Photo */}
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  <Avatar className="w-20 h-20 cursor-pointer" onClick={handleAvatarClick}>
+                    <AvatarImage src={avatarUrl || undefined} />
+                    <AvatarFallback className="text-2xl bg-primary/10 text-primary">
+                      {formData.display_name ? formData.display_name[0].toUpperCase() : 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div 
+                    className={`absolute bottom-0 right-0 w-7 h-7 rounded-full flex items-center justify-center cursor-pointer ${
+                      isPremium ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                    }`}
+                    onClick={handleAvatarClick}
+                  >
+                    {isPremium ? (
+                      <Camera className="w-4 h-4" />
+                    ) : (
+                      <Lock className="w-3 h-3" />
+                    )}
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleFileChange}
+                  />
+                </div>
+                <div>
+                  <p className="font-medium">Photo de profil</p>
+                  <p className="text-sm text-muted-foreground">
+                    {isPremium ? "Cliquez pour changer" : "Disponible avec Premium"}
+                  </p>
+                  {!isPremium && (
+                    <Button 
+                      variant="link" 
+                      className="p-0 h-auto text-xs text-primary"
+                      onClick={() => window.location.href = '/subscription'}
+                    >
+                      Passer à Premium
+                    </Button>
+                  )}
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input id="email" value="utilisateur@example.com" disabled className="bg-muted" />
