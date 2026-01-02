@@ -9,6 +9,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { Sparkles, Mail, Lock, User, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { TermsDialog } from '@/components/auth/TermsDialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { FileText, ExternalLink } from 'lucide-react';
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -20,6 +23,7 @@ const Auth = () => {
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
   const [showTermsDialog, setShowTermsDialog] = useState(false);
+  const [showTermsReadOnly, setShowTermsReadOnly] = useState(false);
   const [pendingSignup, setPendingSignup] = useState<{ email: string; password: string } | null>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -224,7 +228,14 @@ const Auth = () => {
                   )}
                 </Button>
                 <p className="text-xs text-center text-muted-foreground">
-                  En créant un compte, vous acceptez nos conditions d'utilisation
+                  En créant un compte, vous acceptez nos{' '}
+                  <button 
+                    type="button"
+                    onClick={() => setShowTermsReadOnly(true)}
+                    className="text-primary hover:underline font-medium"
+                  >
+                    conditions d'utilisation
+                  </button>
                 </p>
               </form>
             </TabsContent>
@@ -237,6 +248,80 @@ const Auth = () => {
         onOpenChange={setShowTermsDialog}
         onAccept={handleTermsAccepted}
       />
+
+      {/* Read-only Terms Dialog */}
+      <Dialog open={showTermsReadOnly} onOpenChange={setShowTermsReadOnly}>
+        <DialogContent className="max-w-2xl max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5" />
+              Conditions Générales d'Utilisation
+            </DialogTitle>
+          </DialogHeader>
+
+          <ScrollArea className="h-[400px] pr-4">
+            <div className="space-y-4 text-sm">
+              <section>
+                <h3 className="font-bold text-base mb-2">I. CONDITIONS GÉNÉRALES D'UTILISATION (CGU)</h3>
+                <p className="text-muted-foreground text-xs mb-3">Dernière mise à jour : 02 Janvier 2026</p>
+                
+                <h4 className="font-semibold mt-4 mb-2">1. PRÉSENTATION DE L'APPLICATION</h4>
+                <p className="text-muted-foreground">
+                  L'application EXAVY (ci-après "l'Application") est une plateforme technologique d'assistance scolaire et universitaire exploitant l'intelligence artificielle (technologie Google Gemini). Elle est la propriété exclusive de AVY DIGITAL BUSINESS.
+                </p>
+
+                <h4 className="font-semibold mt-4 mb-2">2. ACCEPTATION DES CONDITIONS</h4>
+                <p className="text-muted-foreground">
+                  L'accès et l'utilisation de l'Application sont soumis à l'acceptation pleine et entière des présentes CGU par l'Utilisateur. En créant un compte, l'Utilisateur reconnaît avoir lu, compris et accepté l'ensemble des clauses.
+                </p>
+
+                <h4 className="font-semibold mt-4 mb-2">3. ÉLIGIBILITÉ ET INSCRIPTION</h4>
+                <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                  <li><strong>Âge :</strong> L'Application est destinée aux écoliers et étudiants. Les mineurs de moins de 13 ans doivent obtenir le consentement explicite de leurs parents.</li>
+                  <li><strong>Exactitude :</strong> L'Utilisateur s'engage à fournir des informations exactes lors de son inscription.</li>
+                  <li><strong>Sécurité :</strong> L'Utilisateur est seul responsable de la protection de ses identifiants.</li>
+                </ul>
+
+                <h4 className="font-semibold mt-4 mb-2">4. DESCRIPTION DES SERVICES</h4>
+                <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                  <li>Un tuteur conversationnel basé sur le modèle Gemini de Google.</li>
+                  <li>Des outils d'analyse d'images (OCR) pour la résolution d'exercices.</li>
+                  <li>Des fonctions de résumé de documents (PDF, Audio).</li>
+                  <li>Des générateurs de quiz et de cartes mémoires (flashcards).</li>
+                </ul>
+              </section>
+
+              <section className="border-t pt-4">
+                <h3 className="font-bold text-base mb-2">II. POLITIQUE DE CONFIDENTIALITÉ</h3>
+                
+                <h4 className="font-semibold mt-4 mb-2">1. COLLECTE DES DONNÉES</h4>
+                <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                  <li>Informations d'identité : Nom, prénom, adresse email.</li>
+                  <li>Informations académiques : Niveau d'étude, matières d'intérêt.</li>
+                  <li>Données de contenu : Historique des discussions avec l'IA.</li>
+                </ul>
+
+                <h4 className="font-semibold mt-4 mb-2">2. VOS DROITS</h4>
+                <p className="text-muted-foreground">
+                  Vous disposez des droits d'accès, de rectification, de suppression et de portabilité de vos données personnelles.
+                </p>
+              </section>
+            </div>
+          </ScrollArea>
+
+          <div className="border-t pt-4">
+            <a 
+              href="/documents/EXAVY-CGU.pdf" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-sm text-primary hover:underline"
+            >
+              <ExternalLink className="w-4 h-4" />
+              Télécharger le document complet (PDF)
+            </a>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
