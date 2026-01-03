@@ -27,6 +27,7 @@ const menuItems = [
   { icon: FileText, label: "Documents", path: "/documents" },
   { icon: Brain, label: "Quiz", path: "/quiz" },
   { icon: BookOpen, label: "Flashcards", path: "/flashcards" },
+  { icon: Sparkles, label: "Mind Maps", path: "/mindmap" },
   { icon: MessageSquare, label: "Chat IA", path: "/chat" },
   { icon: PenTool, label: "Résumés", path: "/summaries" },
   { icon: Languages, label: "Reformulation", path: "/rephrase" },
