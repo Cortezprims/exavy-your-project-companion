@@ -3,9 +3,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { FirebaseAuthProvider, useFirebaseAuth } from "@/hooks/useFirebaseAuth";
+import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import Index from "./pages/Index";
-import FirebaseAuth from "./pages/FirebaseAuth";
+import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import Documents from "./pages/Documents";
@@ -25,7 +25,7 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useFirebaseAuth();
+  const { user, loading } = useAuth();
 
   if (loading) {
     return (
@@ -43,7 +43,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useFirebaseAuth();
+  const { user, loading } = useAuth();
 
   if (loading) {
     return (
@@ -62,7 +62,7 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <FirebaseAuthProvider>
+    <AuthProvider>
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -75,7 +75,7 @@ const App = () => (
             } />
             <Route path="/auth" element={
               <PublicRoute>
-                <FirebaseAuth />
+                <Auth />
               </PublicRoute>
             } />
             <Route path="/onboarding" element={
@@ -168,11 +168,12 @@ const App = () => (
                 <Settings />
               </ProtectedRoute>
             } />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
-    </FirebaseAuthProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 
