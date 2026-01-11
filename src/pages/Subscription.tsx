@@ -1,14 +1,18 @@
+import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, Crown, Zap, Star } from "lucide-react";
+import { Check, Crown, Zap, Star, Smartphone } from "lucide-react";
+import { CampayPaymentDialog } from "@/components/payment/CampayPaymentDialog";
+import { useAuth } from "@/hooks/useAuth";
 
 const plans = [
   {
     id: "free",
     name: "Freemium",
     price: "Gratuit",
+    priceXAF: 0,
     period: "",
     description: "Pour commencer",
     features: [
@@ -29,6 +33,7 @@ const plans = [
     id: "monthly",
     name: "Premium Mensuel",
     price: "6 USD",
+    priceXAF: 4150,
     priceLocal: "4 150 FCFA",
     period: "/mois",
     description: "Accès complet",
@@ -49,6 +54,7 @@ const plans = [
     id: "yearly",
     name: "Premium Annuel",
     price: "60 USD",
+    priceXAF: 41500,
     priceLocal: "41 500 FCFA",
     period: "/an",
     description: "Économisez 17%",
@@ -65,6 +71,15 @@ const plans = [
 
 const Subscription = () => {
   const currentPlan: string = 'free';
+  const { user } = useAuth();
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<typeof plans[0] | null>(null);
+
+  const handleSelectPlan = (plan: typeof plans[0]) => {
+    if (plan.id === 'free' || !user) return;
+    setSelectedPlan(plan);
+    setPaymentDialogOpen(true);
+  };
 
   return (
     <MainLayout>
@@ -74,6 +89,14 @@ const Subscription = () => {
           <p className="text-muted-foreground max-w-xl mx-auto">
             Choisissez le plan qui correspond à vos besoins d'apprentissage
           </p>
+        </div>
+
+        {/* Mobile Money Badge */}
+        <div className="flex justify-center mb-8">
+          <Badge variant="secondary" className="gap-2 px-4 py-2">
+            <Smartphone className="w-4 h-4" />
+            Paiement via Orange Money & MTN MoMo
+          </Badge>
         </div>
 
         <div className="grid md:grid-cols-3 gap-6">
@@ -126,9 +149,11 @@ const Subscription = () => {
                 <Button
                   className="w-full"
                   variant={plan.popular ? "default" : "outline"}
+                  onClick={() => handleSelectPlan(plan)}
                   disabled={
                     (plan.id === 'free' && currentPlan === 'free') ||
-                    (plan.id !== 'free' && currentPlan === 'premium')
+                    (plan.id !== 'free' && currentPlan === 'premium') ||
+                    (plan.id !== 'free' && !user)
                   }
                 >
                   {currentPlan === 'premium' && plan.id !== 'free'
@@ -149,6 +174,18 @@ const Subscription = () => {
           <p className="mt-1">Annulation possible à tout moment</p>
         </div>
       </div>
+
+      {/* Campay Payment Dialog */}
+      {selectedPlan && user && (
+        <CampayPaymentDialog
+          open={paymentDialogOpen}
+          onOpenChange={setPaymentDialogOpen}
+          planId={selectedPlan.id}
+          planName={selectedPlan.name}
+          amount={selectedPlan.priceXAF}
+          userId={user.id}
+        />
+      )}
     </MainLayout>
   );
 };

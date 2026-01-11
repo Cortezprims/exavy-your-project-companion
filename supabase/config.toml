@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.analyze-image]
 verify_jwt = false
+
+[functions.campay-payment]
+verify_jwt = false
