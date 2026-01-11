@@ -54,22 +54,61 @@ Deno.serve(async (req) => {
     const formattedPhone = formatPhoneNumber(phoneNumber);
     console.log('Initiating payment for:', { amount, phone: formattedPhone, planId, userId });
 
-    // Get Campay permanent token (no need for username/password authentication)
-    const accessToken = Deno.env.get('CAMPAY_API_TOKEN');
+    // Get Campay credentials
+    const username = Deno.env.get('CAMPAY_USERNAME');
+    const password = Deno.env.get('CAMPAY_PASSWORD');
+    const permanentToken = Deno.env.get('CAMPAY_API_TOKEN');
 
-    if (!accessToken) {
-      console.error('Missing Campay API token');
+    if (!username || !password) {
+      console.error('Missing Campay credentials');
       return new Response(
         JSON.stringify({ error: 'Payment service not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Log token info for debugging (only first/last chars for security)
-    const tokenPreview = accessToken.length > 10 
-      ? `${accessToken.substring(0, 6)}...${accessToken.substring(accessToken.length - 4)} (length: ${accessToken.length})`
-      : `token too short (length: ${accessToken.length})`;
-    console.log('Using Campay permanent access token:', tokenPreview);
+    // Get temporary access token from Campay
+    console.log('Authenticating with Campay...');
+    const tokenResponse = await fetch('https://demo.campay.net/api/token/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        username: username,
+        password: password,
+      }),
+    });
+
+    if (!tokenResponse.ok) {
+      const errorText = await tokenResponse.text();
+      console.error('Failed to get Campay token:', errorText);
+      
+      // Fallback to permanent token if available
+      if (permanentToken) {
+        console.log('Falling back to permanent token...');
+      } else {
+        return new Response(
+          JSON.stringify({ error: 'Failed to authenticate with payment service', details: errorText }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
+    let accessToken: string;
+    if (tokenResponse.ok) {
+      const tokenData = await tokenResponse.json();
+      accessToken = tokenData.token;
+      console.log('Got temporary access token');
+    } else if (permanentToken) {
+      accessToken = permanentToken;
+      console.log('Using permanent token as fallback');
+    } else {
+      return new Response(
+        JSON.stringify({ error: 'No valid authentication available' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Initiate payment request
     const paymentResponse = await fetch('https://demo.campay.net/api/collect/', {
