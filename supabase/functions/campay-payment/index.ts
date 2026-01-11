@@ -165,7 +165,6 @@ async function handleWebhook(req: Request) {
     // Verify webhook signature if provided
     const signature = req.headers.get('x-campay-signature');
     if (webhookSecret && signature) {
-      // Implement signature verification logic here if needed
       console.log('Webhook signature:', signature);
     }
 
@@ -173,15 +172,45 @@ async function handleWebhook(req: Request) {
 
     if (status === 'SUCCESSFUL') {
       // Parse external_reference to get userId and planId
-      const [userId, planId] = external_reference.split('_');
+      const parts = external_reference.split('_');
+      const userId = parts[0];
+      const planId = parts[1];
       
       // Update user subscription in database
       const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
       const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
       const supabase = createClient(supabaseUrl, supabaseKey);
 
-      // Here you could update a subscriptions table
-      console.log('Payment successful for user:', userId, 'plan:', planId);
+      // Calculate expiration date based on plan
+      const now = new Date();
+      let expiresAt: Date;
+      if (planId === 'yearly') {
+        expiresAt = new Date(now.setFullYear(now.getFullYear() + 1));
+      } else {
+        expiresAt = new Date(now.setMonth(now.getMonth() + 1));
+      }
+
+      // Upsert subscription
+      const { error: subError } = await supabase
+        .from('subscriptions')
+        .upsert({
+          user_id: userId,
+          plan: planId,
+          status: 'active',
+          started_at: new Date().toISOString(),
+          expires_at: expiresAt.toISOString(),
+          payment_reference: reference,
+          amount: amount,
+          updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'user_id',
+        });
+
+      if (subError) {
+        console.error('Error updating subscription:', subError);
+      } else {
+        console.log('Subscription updated successfully for user:', userId, 'plan:', planId);
+      }
 
       // Log the transaction
       console.log('Transaction completed:', {
@@ -191,6 +220,7 @@ async function handleWebhook(req: Request) {
         userId,
         planId,
         status: 'SUCCESSFUL',
+        expires_at: expiresAt.toISOString(),
       });
     }
 
