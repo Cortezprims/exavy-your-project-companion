@@ -54,43 +54,18 @@ Deno.serve(async (req) => {
     const formattedPhone = formatPhoneNumber(phoneNumber);
     console.log('Initiating payment for:', { amount, phone: formattedPhone, planId, userId });
 
-    // Get Campay credentials
-    const username = Deno.env.get('CAMPAY_USERNAME');
-    const password = Deno.env.get('CAMPAY_PASSWORD');
-    const apiToken = Deno.env.get('CAMPAY_API_TOKEN');
+    // Get Campay permanent token (no need for username/password authentication)
+    const accessToken = Deno.env.get('CAMPAY_API_TOKEN');
 
-    if (!username || !password) {
-      console.error('Missing Campay credentials');
+    if (!accessToken) {
+      console.error('Missing Campay API token');
       return new Response(
         JSON.stringify({ error: 'Payment service not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Get access token from Campay
-    const tokenResponse = await fetch('https://demo.campay.net/api/token/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        username,
-        password,
-      }),
-    });
-
-    if (!tokenResponse.ok) {
-      const errorText = await tokenResponse.text();
-      console.error('Failed to get Campay token:', errorText);
-      return new Response(
-        JSON.stringify({ error: 'Failed to authenticate with payment service' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const tokenData = await tokenResponse.json();
-    const accessToken = tokenData.token;
-    console.log('Got Campay access token');
+    console.log('Using Campay permanent access token');
 
     // Initiate payment request
     const paymentResponse = await fetch('https://demo.campay.net/api/collect/', {
@@ -143,18 +118,8 @@ Deno.serve(async (req) => {
 
 async function checkPaymentStatus(reference: string) {
   try {
-    const username = Deno.env.get('CAMPAY_USERNAME');
-    const password = Deno.env.get('CAMPAY_PASSWORD');
-
-    // Get access token
-    const tokenResponse = await fetch('https://demo.campay.net/api/token/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
-    });
-
-    const tokenData = await tokenResponse.json();
-    const accessToken = tokenData.token;
+    // Use permanent access token
+    const accessToken = Deno.env.get('CAMPAY_API_TOKEN');
 
     // Check transaction status
     const statusResponse = await fetch(`https://demo.campay.net/api/transaction/${reference}/`, {
