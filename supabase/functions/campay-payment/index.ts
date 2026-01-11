@@ -65,7 +65,11 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log('Using Campay permanent access token');
+    // Log token info for debugging (only first/last chars for security)
+    const tokenPreview = accessToken.length > 10 
+      ? `${accessToken.substring(0, 6)}...${accessToken.substring(accessToken.length - 4)} (length: ${accessToken.length})`
+      : `token too short (length: ${accessToken.length})`;
+    console.log('Using Campay permanent access token:', tokenPreview);
 
     // Initiate payment request
     const paymentResponse = await fetch('https://demo.campay.net/api/collect/', {
