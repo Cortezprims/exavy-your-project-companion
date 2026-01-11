@@ -223,6 +223,45 @@ export type Database = {
           },
         ]
       }
+      subscriptions: {
+        Row: {
+          amount: number | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          payment_reference: string | null
+          plan: Database["public"]["Enums"]["subscription_plan"]
+          started_at: string
+          status: Database["public"]["Enums"]["subscription_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          payment_reference?: string | null
+          plan?: Database["public"]["Enums"]["subscription_plan"]
+          started_at?: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          payment_reference?: string | null
+          plan?: Database["public"]["Enums"]["subscription_plan"]
+          started_at?: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       summaries: {
         Row: {
           created_at: string
@@ -261,15 +300,66 @@ export type Database = {
           },
         ]
       }
+      usage_tracking: {
+        Row: {
+          created_at: string
+          documents_count: number
+          flashcards_count: number
+          id: string
+          mind_maps_count: number
+          period_start: string
+          quizzes_count: number
+          summaries_count: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          documents_count?: number
+          flashcards_count?: number
+          id?: string
+          mind_maps_count?: number
+          period_start?: string
+          quizzes_count?: number
+          summaries_count?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          documents_count?: number
+          flashcards_count?: number
+          id?: string
+          mind_maps_count?: number
+          period_start?: string
+          quizzes_count?: number
+          summaries_count?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_usage_limit: {
+        Args: { p_resource_type: string; p_user_id: string }
+        Returns: Json
+      }
+      get_plan_limits: {
+        Args: { plan_type: Database["public"]["Enums"]["subscription_plan"] }
+        Returns: Json
+      }
+      increment_usage: {
+        Args: { p_resource_type: string; p_user_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
-      [_ in never]: never
+      subscription_plan: "free" | "monthly" | "yearly"
+      subscription_status: "active" | "expired" | "cancelled" | "pending"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -396,6 +486,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      subscription_plan: ["free", "monthly", "yearly"],
+      subscription_status: ["active", "expired", "cancelled", "pending"],
+    },
   },
 } as const

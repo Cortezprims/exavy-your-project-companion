@@ -3,9 +3,11 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, Crown, Zap, Star, Smartphone } from "lucide-react";
+import { Check, Crown, Zap, Star, Smartphone, Loader2 } from "lucide-react";
 import { CampayPaymentDialog } from "@/components/payment/CampayPaymentDialog";
 import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
+import { UsageProgressBar } from "@/components/subscription/UsageProgressBar";
 
 const plans = [
   {
@@ -70,15 +72,35 @@ const plans = [
 ];
 
 const Subscription = () => {
-  const currentPlan: string = 'free';
   const { user } = useAuth();
+  const { getCurrentPlan, isPremium, usage, loading, getLimits, subscription } = useSubscription();
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<typeof plans[0] | null>(null);
+
+  const currentPlan = getCurrentPlan();
+  const limits = getLimits();
 
   const handleSelectPlan = (plan: typeof plans[0]) => {
     if (plan.id === 'free' || !user) return;
     setSelectedPlan(plan);
     setPaymentDialogOpen(true);
+  };
+
+  const getButtonText = (planId: string) => {
+    if (planId === 'free') {
+      return currentPlan === 'free' ? "Plan actuel" : "Rétrograder";
+    }
+    if (isPremium() && (currentPlan === planId || (currentPlan === 'monthly' && planId === 'yearly'))) {
+      return currentPlan === planId ? "Plan actuel" : "Passer à l'annuel";
+    }
+    return "Choisir ce plan";
+  };
+
+  const isButtonDisabled = (planId: string) => {
+    if (!user && planId !== 'free') return true;
+    if (planId === 'free' && currentPlan === 'free') return true;
+    if (isPremium() && currentPlan === planId) return true;
+    return false;
   };
 
   return (
@@ -90,6 +112,67 @@ const Subscription = () => {
             Choisissez le plan qui correspond à vos besoins d'apprentissage
           </p>
         </div>
+
+        {/* Current Plan Status */}
+        {user && !loading && (
+          <Card className="mb-8">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg flex items-center gap-2">
+                {isPremium() ? (
+                  <>
+                    <Crown className="w-5 h-5 text-primary" />
+                    Plan Premium {currentPlan === 'yearly' ? 'Annuel' : 'Mensuel'}
+                  </>
+                ) : (
+                  <>
+                    <Zap className="w-5 h-5" />
+                    Plan Gratuit
+                  </>
+                )}
+              </CardTitle>
+              {subscription?.expires_at && (
+                <CardDescription>
+                  Expire le {new Date(subscription.expires_at).toLocaleDateString('fr-FR')}
+                </CardDescription>
+              )}
+            </CardHeader>
+            <CardContent>
+              <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <UsageProgressBar
+                  label="Documents"
+                  current={usage?.documents_count || 0}
+                  limit={limits.documents_limit}
+                />
+                <UsageProgressBar
+                  label="Quiz"
+                  current={usage?.quizzes_count || 0}
+                  limit={limits.quizzes_limit}
+                />
+                <UsageProgressBar
+                  label="Flashcards"
+                  current={usage?.flashcards_count || 0}
+                  limit={limits.flashcards_limit}
+                />
+                <UsageProgressBar
+                  label="Résumés"
+                  current={usage?.summaries_count || 0}
+                  limit={limits.summaries_limit}
+                />
+                <UsageProgressBar
+                  label="Mind Maps"
+                  current={usage?.mind_maps_count || 0}
+                  limit={limits.mind_maps_limit}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {loading && (
+          <div className="flex justify-center mb-8">
+            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+          </div>
+        )}
 
         {/* Mobile Money Badge */}
         <div className="flex justify-center mb-8">
@@ -105,12 +188,17 @@ const Subscription = () => {
               key={plan.id}
               className={`relative overflow-hidden ${
                 plan.popular ? "border-primary shadow-lg scale-105" : "border-border"
-              }`}
+              } ${currentPlan === plan.id ? "ring-2 ring-primary" : ""}`}
             >
               {plan.popular && (
                 <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-4 py-1 text-xs font-medium rounded-bl-lg">
                   <Star className="w-3 h-3 inline mr-1" />
                   Populaire
+                </div>
+              )}
+              {currentPlan === plan.id && (
+                <div className="absolute top-0 left-0 bg-green-500 text-white px-3 py-1 text-xs font-medium rounded-br-lg">
+                  Actif
                 </div>
               )}
               <CardHeader>
@@ -150,19 +238,9 @@ const Subscription = () => {
                   className="w-full"
                   variant={plan.popular ? "default" : "outline"}
                   onClick={() => handleSelectPlan(plan)}
-                  disabled={
-                    (plan.id === 'free' && currentPlan === 'free') ||
-                    (plan.id !== 'free' && currentPlan === 'premium') ||
-                    (plan.id !== 'free' && !user)
-                  }
+                  disabled={isButtonDisabled(plan.id)}
                 >
-                  {currentPlan === 'premium' && plan.id !== 'free'
-                    ? "Plan actuel"
-                    : plan.id === 'free' && currentPlan === 'free'
-                    ? "Plan actuel"
-                    : plan.id === 'free'
-                    ? "Rétrograder"
-                    : "Choisir ce plan"}
+                  {getButtonText(plan.id)}
                 </Button>
               </CardContent>
             </Card>
