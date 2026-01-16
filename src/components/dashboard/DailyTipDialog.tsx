@@ -35,7 +35,8 @@ export const DailyTipDialog = () => {
   const isPremium = subscription?.plan === 'monthly' || subscription?.plan === 'yearly';
 
   useEffect(() => {
-    if (user && !hasShownToday) {
+    // Only show for premium users with documents
+    if (user && !hasShownToday && isPremium) {
       // Check if we've already shown a tip today
       const lastShown = localStorage.getItem(`dailyTip_${user.id}`);
       const today = new Date().toDateString();
@@ -44,10 +45,10 @@ export const DailyTipDialog = () => {
         fetchDailyTip();
       }
     }
-  }, [user, hasShownToday]);
+  }, [user, hasShownToday, isPremium]);
 
   const fetchDailyTip = async () => {
-    if (!user) return;
+    if (!user || !isPremium) return;
 
     setLoading(true);
     try {
