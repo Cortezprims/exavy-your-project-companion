@@ -12,6 +12,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { ArrowLeft, Loader2, Download, Lock, RefreshCw, Plus, X, Lightbulb, HelpCircle, FileText, Clock, Brain } from 'lucide-react';
 import { toast } from 'sonner';
 import { toPng } from 'html-to-image';
+import { InteractiveMindMap } from '@/components/mindmap/InteractiveMindMap';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -428,11 +429,8 @@ const MindMap = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div 
-                ref={mindMapRef}
-                className="overflow-auto bg-gradient-to-br from-background to-muted/30 rounded-lg border min-h-[400px]"
-              >
-                <MindMapViewer nodes={activeMindMap.nodes} title={activeMindMap.title} />
+              <div ref={mindMapRef}>
+                <InteractiveMindMap nodes={activeMindMap.nodes} title={activeMindMap.title} />
               </div>
             </CardContent>
           </Card>

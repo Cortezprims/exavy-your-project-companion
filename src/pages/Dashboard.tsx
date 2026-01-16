@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { DailyTipDialog } from '@/components/dashboard/DailyTipDialog';
 import { 
   FileText, 
   Brain, 
@@ -162,6 +163,7 @@ const Dashboard = () => {
 
   return (
     <MainLayout>
+      <DailyTipDialog />
       <div className="p-6 space-y-6">
         {/* Header - adjusted for mobile menu button */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">

@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      daily_tips_shown: {
+        Row: {
+          created_at: string
+          id: string
+          shown_at: string
+          tip_hash: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          shown_at?: string
+          tip_hash: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          shown_at?: string
+          tip_hash?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       documents: {
         Row: {
           content: string | null
@@ -336,6 +360,84 @@ export type Database = {
           summaries_count?: number
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_preferences: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          last_report_sent_at: string | null
+          updated_at: string
+          user_id: string
+          weekly_reports_enabled: boolean
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          last_report_sent_at?: string | null
+          updated_at?: string
+          user_id: string
+          weekly_reports_enabled?: boolean
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          last_report_sent_at?: string | null
+          updated_at?: string
+          user_id?: string
+          weekly_reports_enabled?: boolean
+        }
+        Relationships: []
+      }
+      weekly_stats: {
+        Row: {
+          created_at: string
+          documents_created: number
+          flashcards_created: number
+          goals_achieved: number
+          goals_set: number
+          id: string
+          mind_maps_created: number
+          quizzes_created: number
+          study_time_minutes: number
+          summaries_created: number
+          user_id: string
+          week_end: string
+          week_start: string
+        }
+        Insert: {
+          created_at?: string
+          documents_created?: number
+          flashcards_created?: number
+          goals_achieved?: number
+          goals_set?: number
+          id?: string
+          mind_maps_created?: number
+          quizzes_created?: number
+          study_time_minutes?: number
+          summaries_created?: number
+          user_id: string
+          week_end: string
+          week_start: string
+        }
+        Update: {
+          created_at?: string
+          documents_created?: number
+          flashcards_created?: number
+          goals_achieved?: number
+          goals_set?: number
+          id?: string
+          mind_maps_created?: number
+          quizzes_created?: number
+          study_time_minutes?: number
+          summaries_created?: number
+          user_id?: string
+          week_end?: string
+          week_start?: string
         }
         Relationships: []
       }
