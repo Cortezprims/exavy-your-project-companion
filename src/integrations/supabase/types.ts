@@ -92,6 +92,54 @@ export type Database = {
         }
         Relationships: []
       }
+      exabot_profiles: {
+        Row: {
+          burnout_score: number | null
+          created_at: string
+          id: string
+          last_activity_at: string | null
+          last_break_suggestion_at: string | null
+          learning_style: string | null
+          optimal_study_times: Json | null
+          personality_type: string | null
+          streak_days: number | null
+          study_preferences: Json | null
+          total_study_minutes: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          burnout_score?: number | null
+          created_at?: string
+          id?: string
+          last_activity_at?: string | null
+          last_break_suggestion_at?: string | null
+          learning_style?: string | null
+          optimal_study_times?: Json | null
+          personality_type?: string | null
+          streak_days?: number | null
+          study_preferences?: Json | null
+          total_study_minutes?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          burnout_score?: number | null
+          created_at?: string
+          id?: string
+          last_activity_at?: string | null
+          last_break_suggestion_at?: string | null
+          learning_style?: string | null
+          optimal_study_times?: Json | null
+          personality_type?: string | null
+          streak_days?: number | null
+          study_preferences?: Json | null
+          total_study_minutes?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       flashcard_decks: {
         Row: {
           created_at: string
@@ -208,6 +256,122 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      mock_exams: {
+        Row: {
+          ai_feedback: Json | null
+          completed_at: string | null
+          created_at: string
+          difficulty: string | null
+          document_id: string | null
+          duration_minutes: number | null
+          exam_type: string
+          grading_scale: Json | null
+          id: string
+          instructions: string | null
+          questions: Json
+          started_at: string | null
+          status: string | null
+          subject: string | null
+          title: string
+          total_points: number | null
+          updated_at: string
+          user_answers: Json | null
+          user_id: string
+          user_score: number | null
+        }
+        Insert: {
+          ai_feedback?: Json | null
+          completed_at?: string | null
+          created_at?: string
+          difficulty?: string | null
+          document_id?: string | null
+          duration_minutes?: number | null
+          exam_type: string
+          grading_scale?: Json | null
+          id?: string
+          instructions?: string | null
+          questions?: Json
+          started_at?: string | null
+          status?: string | null
+          subject?: string | null
+          title: string
+          total_points?: number | null
+          updated_at?: string
+          user_answers?: Json | null
+          user_id: string
+          user_score?: number | null
+        }
+        Update: {
+          ai_feedback?: Json | null
+          completed_at?: string | null
+          created_at?: string
+          difficulty?: string | null
+          document_id?: string | null
+          duration_minutes?: number | null
+          exam_type?: string
+          grading_scale?: Json | null
+          id?: string
+          instructions?: string | null
+          questions?: Json
+          started_at?: string | null
+          status?: string | null
+          subject?: string | null
+          title?: string
+          total_points?: number | null
+          updated_at?: string
+          user_answers?: Json | null
+          user_id?: string
+          user_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mock_exams_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      offline_content: {
+        Row: {
+          compressed_data: string | null
+          content_id: string
+          content_type: string
+          created_at: string
+          file_size: number | null
+          id: string
+          last_synced_at: string | null
+          updated_at: string
+          user_id: string
+          version: number | null
+        }
+        Insert: {
+          compressed_data?: string | null
+          content_id: string
+          content_type: string
+          created_at?: string
+          file_size?: number | null
+          id?: string
+          last_synced_at?: string | null
+          updated_at?: string
+          user_id: string
+          version?: number | null
+        }
+        Update: {
+          compressed_data?: string | null
+          content_id?: string
+          content_type?: string
+          created_at?: string
+          file_size?: number | null
+          id?: string
+          last_synced_at?: string | null
+          updated_at?: string
+          user_id?: string
+          version?: number | null
+        }
+        Relationships: []
       }
       quizzes: {
         Row: {
