@@ -140,6 +140,68 @@ export type Database = {
         }
         Relationships: []
       }
+      exercises: {
+        Row: {
+          concept: string | null
+          created_at: string
+          difficulty: string
+          document_id: string | null
+          exercise_type: string
+          hints: Json | null
+          id: string
+          questions: Json
+          solutions: Json
+          subject: string | null
+          time_estimate_minutes: number | null
+          title: string
+          updated_at: string
+          user_id: string
+          variant_number: number | null
+        }
+        Insert: {
+          concept?: string | null
+          created_at?: string
+          difficulty?: string
+          document_id?: string | null
+          exercise_type?: string
+          hints?: Json | null
+          id?: string
+          questions?: Json
+          solutions?: Json
+          subject?: string | null
+          time_estimate_minutes?: number | null
+          title: string
+          updated_at?: string
+          user_id: string
+          variant_number?: number | null
+        }
+        Update: {
+          concept?: string | null
+          created_at?: string
+          difficulty?: string
+          document_id?: string | null
+          exercise_type?: string
+          hints?: Json | null
+          id?: string
+          questions?: Json
+          solutions?: Json
+          subject?: string | null
+          time_estimate_minutes?: number | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          variant_number?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercises_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       flashcard_decks: {
         Row: {
           created_at: string
@@ -334,6 +396,53 @@ export type Database = {
           },
         ]
       }
+      notes: {
+        Row: {
+          color: string | null
+          content: string | null
+          created_at: string
+          id: string
+          is_pinned: boolean | null
+          project_id: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          content?: string | null
+          created_at?: string
+          id?: string
+          is_pinned?: boolean | null
+          project_id?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          content?: string | null
+          created_at?: string
+          id?: string
+          is_pinned?: boolean | null
+          project_id?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notes_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       offline_content: {
         Row: {
           compressed_data: string | null
@@ -370,6 +479,92 @@ export type Database = {
           updated_at?: string
           user_id?: string
           version?: number | null
+        }
+        Relationships: []
+      }
+      presentations: {
+        Row: {
+          created_at: string
+          design_settings: Json | null
+          document_id: string | null
+          export_format: string | null
+          id: string
+          slides: Json
+          speaker_notes: Json | null
+          theme: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          design_settings?: Json | null
+          document_id?: string | null
+          export_format?: string | null
+          id?: string
+          slides?: Json
+          speaker_notes?: Json | null
+          theme?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          design_settings?: Json | null
+          document_id?: string | null
+          export_format?: string | null
+          id?: string
+          slides?: Json
+          speaker_notes?: Json | null
+          theme?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "presentations_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          is_archived: boolean | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_archived?: boolean | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_archived?: boolean | null
+          title?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -484,6 +679,62 @@ export type Database = {
             columns: ["document_id"]
             isOneToOne: false
             referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tasks: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          position: number | null
+          priority: string | null
+          project_id: string | null
+          status: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          position?: number | null
+          priority?: string | null
+          project_id?: string | null
+          status?: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          position?: number | null
+          priority?: string | null
+          project_id?: string | null
+          status?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]

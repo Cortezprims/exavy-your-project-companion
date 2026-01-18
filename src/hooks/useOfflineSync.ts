@@ -242,8 +242,7 @@ export function useOfflineSync() {
       const request = store.getAll();
 
       request.onsuccess = async () => {
-        const pendingItems = request.result.filter(item => !item.synced);
-        const pendingItems = request.result;
+        const pendingItems = request.result.filter((item: any) => !item.synced);
         
         for (const item of pendingItems) {
           try {
