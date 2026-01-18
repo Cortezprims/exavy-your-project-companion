@@ -38,3 +38,9 @@ verify_jwt = false
 
 [functions.grade-exam]
 verify_jwt = false
+
+[functions.generate-exercises]
+verify_jwt = false
+
+[functions.generate-presentation]
+verify_jwt = false
