@@ -26,18 +26,19 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, userId } = await req.json();
-
-    if (!userId) {
+    // Validate Authorization header and extract user
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return new Response(
-        JSON.stringify({ error: 'userId is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'No authorization header' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
 
     if (!lovableApiKey) {
       return new Response(
@@ -46,6 +47,26 @@ serve(async (req) => {
       );
     }
 
+    // Create client with user's auth context
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    // Verify the JWT and get user
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getUser(token);
+    
+    if (claimsError || !claimsData?.user) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const userId = claimsData.user.id;
+    const { messages } = await req.json();
+
+    // Use service role for database operations
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Fetch or create EXABOT profile
