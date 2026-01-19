@@ -21,6 +21,12 @@ import Profile from "./pages/Profile";
 import Subscription from "./pages/Subscription";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import MockExam from "./pages/MockExam";
+import Exercises from "./pages/Exercises";
+import Presentations from "./pages/Presentations";
+import Projects from "./pages/Projects";
+import Admin from "./pages/Admin";
+import Help from "./pages/Help";
 
 const queryClient = new QueryClient();
 
@@ -166,6 +172,41 @@ const App = () => (
             <Route path="/settings" element={
               <ProtectedRoute>
                 <Settings />
+              </ProtectedRoute>
+            } />
+            <Route path="/mock-exam" element={
+              <ProtectedRoute>
+                <MockExam />
+              </ProtectedRoute>
+            } />
+            <Route path="/mock-exam/:examId" element={
+              <ProtectedRoute>
+                <MockExam />
+              </ProtectedRoute>
+            } />
+            <Route path="/exercises" element={
+              <ProtectedRoute>
+                <Exercises />
+              </ProtectedRoute>
+            } />
+            <Route path="/presentations" element={
+              <ProtectedRoute>
+                <Presentations />
+              </ProtectedRoute>
+            } />
+            <Route path="/projects" element={
+              <ProtectedRoute>
+                <Projects />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin" element={
+              <ProtectedRoute>
+                <Admin />
+              </ProtectedRoute>
+            } />
+            <Route path="/help" element={
+              <ProtectedRoute>
+                <Help />
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
