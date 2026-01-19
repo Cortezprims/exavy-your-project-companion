@@ -44,3 +44,6 @@ verify_jwt = false
 
 [functions.generate-presentation]
 verify_jwt = false
+
+[functions.send-support-ticket]
+verify_jwt = false

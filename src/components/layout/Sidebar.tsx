@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useAdmin } from "@/hooks/useAdmin";
 import { cn } from "@/lib/utils";
 import {
   Home,
@@ -17,7 +18,13 @@ import {
   Languages,
   Target,
   Menu,
-  X
+  X,
+  ClipboardList,
+  Presentation,
+  FolderKanban,
+  GraduationCap,
+  Shield,
+  HelpCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -30,6 +37,10 @@ const menuItems = [
   { icon: Sparkles, label: "Mind Maps", path: "/mindmap" },
   { icon: MessageSquare, label: "Chat IA", path: "/chat" },
   { icon: PenTool, label: "Résumés", path: "/summaries" },
+  { icon: ClipboardList, label: "Exercices", path: "/exercises" },
+  { icon: GraduationCap, label: "Examens blancs", path: "/mock-exam" },
+  { icon: Presentation, label: "Présentations", path: "/presentations" },
+  { icon: FolderKanban, label: "Projets", path: "/projects" },
   { icon: Languages, label: "Reformulation", path: "/rephrase" },
   { icon: Calendar, label: "Planning", path: "/planning" },
   { icon: Target, label: "Compétences", path: "/skills" },
@@ -38,6 +49,7 @@ const menuItems = [
 const bottomMenuItems = [
   { icon: User, label: "Profil", path: "/profile" },
   { icon: CreditCard, label: "Abonnement", path: "/subscription" },
+  { icon: HelpCircle, label: "Aide", path: "/help" },
   { icon: Settings, label: "Paramètres", path: "/settings" },
 ];
 
@@ -45,6 +57,7 @@ export const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { signOut } = useAuth();
+  const { isAdmin } = useAdmin();
   const [isOpen, setIsOpen] = useState(false);
 
   const handleSignOut = async () => {
@@ -122,6 +135,9 @@ export const Sidebar = () => {
 
         {/* Bottom navigation */}
         <div className="p-4 border-t border-border space-y-1">
+          {isAdmin && (
+            <NavItem icon={Shield} label="Administration" path="/admin" />
+          )}
           {bottomMenuItems.map((item) => (
             <NavItem key={item.path} {...item} />
           ))}
