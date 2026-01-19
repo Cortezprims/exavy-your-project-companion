@@ -683,6 +683,48 @@ export type Database = {
           },
         ]
       }
+      support_tickets: {
+        Row: {
+          admin_response: string | null
+          created_at: string
+          email: string
+          id: string
+          message: string
+          phone: string | null
+          responded_at: string | null
+          status: string
+          subject: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          admin_response?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          message: string
+          phone?: string | null
+          responded_at?: string | null
+          status?: string
+          subject: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          admin_response?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string
+          phone?: string | null
+          responded_at?: string | null
+          status?: string
+          subject?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           completed_at: string | null
@@ -778,6 +820,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_blocks: {
+        Row: {
+          blocked_by: string | null
+          blocked_until: string | null
+          created_at: string
+          id: string
+          is_permanent: boolean | null
+          reason: string | null
+          user_id: string
+        }
+        Insert: {
+          blocked_by?: string | null
+          blocked_until?: string | null
+          created_at?: string
+          id?: string
+          is_permanent?: boolean | null
+          reason?: string | null
+          user_id: string
+        }
+        Update: {
+          blocked_by?: string | null
+          blocked_until?: string | null
+          created_at?: string
+          id?: string
+          is_permanent?: boolean | null
+          reason?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_preferences: {
         Row: {
           created_at: string
@@ -805,6 +877,57 @@ export type Database = {
           updated_at?: string
           user_id?: string
           weekly_reports_enabled?: boolean
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_sessions: {
+        Row: {
+          email: string | null
+          id: string
+          ip_address: string | null
+          last_active_at: string
+          logged_in_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          email?: string | null
+          id?: string
+          ip_address?: string | null
+          last_active_at?: string
+          logged_in_at?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          email?: string | null
+          id?: string
+          ip_address?: string | null
+          last_active_at?: string
+          logged_in_at?: string
+          user_agent?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -869,12 +992,22 @@ export type Database = {
         Args: { plan_type: Database["public"]["Enums"]["subscription_plan"] }
         Returns: Json
       }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       increment_usage: {
         Args: { p_resource_type: string; p_user_id: string }
         Returns: undefined
       }
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_user_blocked: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
+      app_role: "admin" | "moderator" | "user"
       subscription_plan: "free" | "monthly" | "yearly"
       subscription_status: "active" | "expired" | "cancelled" | "pending"
     }
@@ -1004,6 +1137,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "moderator", "user"],
       subscription_plan: ["free", "monthly", "yearly"],
       subscription_status: ["active", "expired", "cancelled", "pending"],
     },
