@@ -7,8 +7,10 @@ import { Input } from '@/components/ui/input';
 import { DocumentUpload } from '@/components/documents/DocumentUpload';
 import { DocumentProcessingProgress } from '@/components/documents/DocumentProcessingProgress';
 import { GenerateOptionsDialog } from '@/components/documents/GenerateOptionsDialog';
+import { GenerateExamDialog } from '@/components/documents/GenerateExamDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useAdmin } from '@/hooks/useAdmin';
 import { 
   FileText, 
   Search, 
@@ -23,7 +25,10 @@ import {
   Loader2,
   Network,
   MessageSquare,
-  Crown
+  Crown,
+  GraduationCap,
+  Presentation,
+  Dumbbell
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -34,6 +39,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface Document {
   id: string;
@@ -81,6 +87,7 @@ const getStatusBadge = (status: string) => {
 
 const Documents = () => {
   const { user } = useAuth();
+  const { isAdmin } = useAdmin();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -90,11 +97,20 @@ const Documents = () => {
   const [generateDialogOpen, setGenerateDialogOpen] = useState(false);
   const [generateType, setGenerateType] = useState<'quiz' | 'flashcards'>('quiz');
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
+  
+  // Exam dialog state
+  const [examDialogOpen, setExamDialogOpen] = useState(false);
+  const [examDocument, setExamDocument] = useState<Document | null>(null);
 
   const openGenerateDialog = (doc: Document, type: 'quiz' | 'flashcards') => {
     setSelectedDocument(doc);
     setGenerateType(type);
     setGenerateDialogOpen(true);
+  };
+
+  const openExamDialog = (doc: Document) => {
+    setExamDocument(doc);
+    setExamDialogOpen(true);
   };
 
   const fetchDocuments = async () => {
@@ -148,6 +164,68 @@ const Documents = () => {
       console.error('Error deleting document:', error);
       toast.error('Erreur lors de la suppression');
     }
+  };
+
+  const handleGenerateExercises = async (doc: Document) => {
+    if (doc.status !== 'completed') {
+      toast.error('Le document doit être traité avant de générer des exercices');
+      return;
+    }
+
+    toast.loading('Génération des exercices en cours...', { id: 'exercises' });
+    
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const { data, error } = await supabase.functions.invoke('generate-exercises', {
+        body: { documentId: doc.id },
+        headers: { Authorization: `Bearer ${session?.access_token}` }
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      toast.success('Exercices générés avec succès !', { id: 'exercises' });
+      navigate('/exercises');
+    } catch (error: any) {
+      console.error('Error generating exercises:', error);
+      toast.error(error.message || 'Erreur lors de la génération', { id: 'exercises' });
+    }
+  };
+
+  const handleGeneratePresentation = async (doc: Document) => {
+    if (doc.status !== 'completed') {
+      toast.error('Le document doit être traité avant de générer une présentation');
+      return;
+    }
+
+    toast.loading('Génération de la présentation...', { id: 'presentation' });
+    
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const { data, error } = await supabase.functions.invoke('generate-presentation', {
+        body: { documentId: doc.id, theme: 'modern', slideCount: 10, includeNotes: true },
+        headers: { Authorization: `Bearer ${session?.access_token}` }
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      toast.success('Présentation générée avec succès !', { id: 'presentation' });
+      navigate('/presentations');
+    } catch (error: any) {
+      console.error('Error generating presentation:', error);
+      toast.error(error.message || 'Erreur lors de la génération', { id: 'presentation' });
+    }
+  };
+
+  const handleChatWithDocument = (doc: Document) => {
+    if (doc.status !== 'completed') {
+      toast.error('Le document doit être traité avant de discuter avec EXABOT');
+      return;
+    }
+    navigate(`/chat?documentId=${doc.id}`);
   };
 
   const filteredDocuments = documents.filter(doc =>
@@ -235,44 +313,107 @@ const Documents = () => {
                   <div className="mb-4">
                     <DocumentProcessingProgress status={doc.status} />
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      disabled={doc.status !== 'completed'}
-                      onClick={() => openGenerateDialog(doc, 'quiz')}
-                    >
-                      <Brain className="w-3 h-3 mr-1" />
-                      Quiz
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      disabled={doc.status !== 'completed'}
-                      onClick={() => openGenerateDialog(doc, 'flashcards')}
-                    >
-                      <BookOpen className="w-3 h-3 mr-1" />
-                      Flashcards
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      disabled={doc.status !== 'completed'}
-                      onClick={() => navigate(`/summaries/${doc.id}`)}
-                    >
-                      <Sparkles className="w-3 h-3 mr-1" />
-                      Résumé
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      disabled={doc.status !== 'completed'}
-                      onClick={() => navigate(`/mindmap/${doc.id}`)}
-                    >
-                      <Network className="w-3 h-3 mr-1" />
-                      Mind Map
-                    </Button>
-                  </div>
+                  
+                  {/* Action Tabs */}
+                  <Tabs defaultValue="basic" className="w-full">
+                    <TabsList className="grid grid-cols-2 w-full h-8 mb-2">
+                      <TabsTrigger value="basic" className="text-xs">Standard</TabsTrigger>
+                      <TabsTrigger value="premium" className="text-xs flex items-center gap-1">
+                        <Crown className="w-3 h-3" />
+                        Premium
+                      </TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="basic" className="mt-0">
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          disabled={doc.status !== 'completed'}
+                          onClick={() => openGenerateDialog(doc, 'quiz')}
+                          className="text-xs h-8"
+                        >
+                          <Brain className="w-3 h-3 mr-1" />
+                          Quiz
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          disabled={doc.status !== 'completed'}
+                          onClick={() => openGenerateDialog(doc, 'flashcards')}
+                          className="text-xs h-8"
+                        >
+                          <BookOpen className="w-3 h-3 mr-1" />
+                          Flashcards
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          disabled={doc.status !== 'completed'}
+                          onClick={() => navigate(`/summaries/${doc.id}`)}
+                          className="text-xs h-8"
+                        >
+                          <Sparkles className="w-3 h-3 mr-1" />
+                          Résumé
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          disabled={doc.status !== 'completed'}
+                          onClick={() => navigate(`/mindmap/${doc.id}`)}
+                          className="text-xs h-8"
+                        >
+                          <Network className="w-3 h-3 mr-1" />
+                          Mind Map
+                        </Button>
+                      </div>
+                    </TabsContent>
+                    
+                    <TabsContent value="premium" className="mt-0">
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          disabled={doc.status !== 'completed'}
+                          onClick={() => openExamDialog(doc)}
+                          className="text-xs h-8"
+                        >
+                          <GraduationCap className="w-3 h-3 mr-1" />
+                          Examen Blanc
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          disabled={doc.status !== 'completed'}
+                          onClick={() => handleGenerateExercises(doc)}
+                          className="text-xs h-8"
+                        >
+                          <Dumbbell className="w-3 h-3 mr-1" />
+                          Exercices
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          disabled={doc.status !== 'completed'}
+                          onClick={() => handleGeneratePresentation(doc)}
+                          className="text-xs h-8"
+                        >
+                          <Presentation className="w-3 h-3 mr-1" />
+                          Présentation
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          disabled={doc.status !== 'completed'}
+                          onClick={() => handleChatWithDocument(doc)}
+                          className="text-xs h-8"
+                        >
+                          <MessageSquare className="w-3 h-3 mr-1" />
+                          Chat IA
+                        </Button>
+                      </div>
+                    </TabsContent>
+                  </Tabs>
                   
                   {/* Premium badge for audio/image */}
                   {(doc.file_type === 'audio' || doc.file_type === 'image') && (
@@ -311,6 +452,16 @@ const Documents = () => {
             documentTitle={selectedDocument.title}
             userId={user.id}
             onGenerated={fetchDocuments}
+          />
+        )}
+
+        {/* Exam Dialog */}
+        {examDocument && (
+          <GenerateExamDialog
+            open={examDialogOpen}
+            onOpenChange={setExamDialogOpen}
+            documentId={examDocument.id}
+            documentTitle={examDocument.title}
           />
         )}
       </div>

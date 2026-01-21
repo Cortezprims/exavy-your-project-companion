@@ -66,7 +66,7 @@ export function GenerateExamDialog({
 }: GenerateExamDialogProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { isPremium } = useSubscription();
+  const { isPremium, isAdmin } = useSubscription();
   const [isGenerating, setIsGenerating] = useState(false);
   const [examType, setExamType] = useState('custom');
   const [subject, setSubject] = useState('other');
@@ -80,7 +80,8 @@ export function GenerateExamDialog({
       return;
     }
 
-    if (!isPremium()) {
+    // Admin users and premium users can access
+    if (!isPremium() && !isAdmin) {
       toast.error('Cette fonctionnalité nécessite un abonnement Premium');
       return;
     }
@@ -125,7 +126,7 @@ export function GenerateExamDialog({
     }
   };
 
-  if (!isPremium()) {
+  if (!isPremium() && !isAdmin) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-md">
