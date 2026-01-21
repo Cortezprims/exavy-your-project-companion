@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useAdmin } from '@/hooks/useAdmin';
 
 export interface Subscription {
   id: string;
@@ -62,6 +63,7 @@ const PREMIUM_LIMITS: PlanLimits = {
 
 export function useSubscription() {
   const { user } = useAuth();
+  const { isAdmin } = useAdmin();
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [usage, setUsage] = useState<UsageTracking | null>(null);
   const [loading, setLoading] = useState(true);
@@ -105,7 +107,9 @@ export function useSubscription() {
     }
   };
 
-  const getCurrentPlan = (): 'free' | 'monthly' | 'yearly' => {
+  const getCurrentPlan = (): 'free' | 'monthly' | 'yearly' | 'admin' => {
+    // Admin users have unlimited access
+    if (isAdmin) return 'admin';
     if (!subscription) return 'free';
     if (subscription.status !== 'active') return 'free';
     if (subscription.expires_at && new Date(subscription.expires_at) < new Date()) return 'free';
@@ -113,8 +117,10 @@ export function useSubscription() {
   };
 
   const isPremium = (): boolean => {
+    // Admin users are considered premium
+    if (isAdmin) return true;
     const plan = getCurrentPlan();
-    return plan === 'monthly' || plan === 'yearly';
+    return plan === 'monthly' || plan === 'yearly' || plan === 'admin';
   };
 
   const getLimits = (): PlanLimits => {
@@ -129,6 +135,16 @@ export function useSubscription() {
         limit: 0,
         plan: 'free',
         message: 'Veuillez vous connecter.',
+      };
+    }
+
+    // Admin users bypass all limits
+    if (isAdmin) {
+      return {
+        allowed: true,
+        current: 0,
+        limit: -1,
+        plan: 'admin',
       };
     }
 
@@ -171,6 +187,8 @@ export function useSubscription() {
   };
 
   const getUsagePercentage = (resourceType: 'documents' | 'quizzes' | 'flashcards' | 'summaries' | 'mind_maps'): number => {
+    // Admin users have no usage limits
+    if (isAdmin) return 0;
     if (!usage) return 0;
     const limits = getLimits();
     
@@ -201,6 +219,7 @@ export function useSubscription() {
     subscription,
     usage,
     loading,
+    isAdmin,
     getCurrentPlan,
     isPremium,
     getLimits,

@@ -35,26 +35,32 @@ serve(async (req) => {
       });
     }
 
-    // Check premium status
-    const { data: subscription } = await supabase
-      .from('subscriptions')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('status', 'active')
-      .maybeSingle();
+    // Check if user is admin (bypass premium check)
+    const { data: isAdminResult } = await supabase.rpc('is_admin', { _user_id: user.id });
+    const isAdmin = isAdminResult === true;
 
-    const isPremium = subscription && 
-      (subscription.plan === 'monthly' || subscription.plan === 'yearly') &&
-      (!subscription.expires_at || new Date(subscription.expires_at) > new Date());
+    // Check premium status if not admin
+    if (!isAdmin) {
+      const { data: subscription } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .maybeSingle();
 
-    if (!isPremium) {
-      return new Response(JSON.stringify({ 
-        error: 'Premium subscription required',
-        isPremium: false 
-      }), {
-        status: 403,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      const isPremium = subscription && 
+        (subscription.plan === 'monthly' || subscription.plan === 'yearly') &&
+        (!subscription.expires_at || new Date(subscription.expires_at) > new Date());
+
+      if (!isPremium) {
+        return new Response(JSON.stringify({ 
+          error: 'Premium subscription required',
+          isPremium: false 
+        }), {
+          status: 403,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
     }
 
     const { documentId, theme, slideCount, includeNotes } = await req.json();
