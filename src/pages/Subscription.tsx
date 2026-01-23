@@ -3,8 +3,8 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, Crown, Zap, Star, Smartphone, Loader2 } from "lucide-react";
-import { CampayPaymentDialog } from "@/components/payment/CampayPaymentDialog";
+import { Check, Crown, Zap, Star, Smartphone, Globe, Loader2 } from "lucide-react";
+import { PaymentMethodSelector } from "@/components/payment/PaymentMethodSelector";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { UsageProgressBar } from "@/components/subscription/UsageProgressBar";
@@ -14,6 +14,7 @@ const plans = [
     id: "free",
     name: "Freemium",
     price: "Gratuit",
+    priceUSD: 0,
     priceXAF: 0,
     period: "",
     description: "Pour commencer",
@@ -34,9 +35,10 @@ const plans = [
   {
     id: "monthly",
     name: "Premium Mensuel",
-    price: "6 USD",
-    priceXAF: 4150,
-    priceLocal: "4 150 FCFA",
+    price: "4 USD",
+    priceUSD: 4,
+    priceXAF: 2600,
+    priceLocal: "2 600 FCFA",
     period: "/mois",
     description: "Accès complet",
     features: [
@@ -55,9 +57,10 @@ const plans = [
   {
     id: "yearly",
     name: "Premium Annuel",
-    price: "60 USD",
-    priceXAF: 41500,
-    priceLocal: "41 500 FCFA",
+    price: "40 USD",
+    priceUSD: 40,
+    priceXAF: 26000,
+    priceLocal: "26 000 FCFA",
     period: "/an",
     description: "Économisez 17%",
     features: [
@@ -175,10 +178,14 @@ const Subscription = () => {
         )}
 
         {/* Mobile Money Badge */}
-        <div className="flex justify-center mb-8">
+        <div className="flex flex-wrap justify-center gap-3 mb-8">
           <Badge variant="secondary" className="gap-2 px-4 py-2">
             <Smartphone className="w-4 h-4" />
-            Paiement via Orange Money & MTN MoMo
+            Campay (Cameroun)
+          </Badge>
+          <Badge variant="secondary" className="gap-2 px-4 py-2">
+            <Globe className="w-4 h-4" />
+            PawaPay (19+ pays)
           </Badge>
         </div>
 
@@ -253,14 +260,15 @@ const Subscription = () => {
         </div>
       </div>
 
-      {/* Campay Payment Dialog */}
+      {/* Payment Method Selector */}
       {selectedPlan && user && (
-        <CampayPaymentDialog
+        <PaymentMethodSelector
           open={paymentDialogOpen}
           onOpenChange={setPaymentDialogOpen}
           planId={selectedPlan.id}
           planName={selectedPlan.name}
-          amount={selectedPlan.priceXAF}
+          amountUSD={selectedPlan.priceUSD}
+          amountXAF={selectedPlan.priceXAF}
           userId={user.id}
         />
       )}

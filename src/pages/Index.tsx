@@ -42,8 +42,9 @@ const Index = () => {
     },
     {
       name: "Premium",
-      price: "3 450",
-      currency: "FCFA/mois",
+      price: "4 USD",
+      priceLocal: "2 600 FCFA/mois",
+      currency: "",
       features: [
         "Documents illimités",
         "Quiz et flashcards illimités",
@@ -58,8 +59,9 @@ const Index = () => {
     },
     {
       name: "Premium Annuel",
-      price: "34 500",
-      currency: "FCFA/an",
+      price: "40 USD",
+      priceLocal: "26 000 FCFA/an",
+      currency: "",
       badge: "Économisez 17%",
       features: [
         "Tous les avantages Premium",
@@ -208,6 +210,9 @@ const Index = () => {
                     {plan.price}
                   </span>
                   <span className="text-muted-foreground ml-2">{plan.currency}</span>
+                  {plan.priceLocal && (
+                    <p className="text-sm text-muted-foreground mt-1">{plan.priceLocal}</p>
+                  )}
                 </div>
                 
                 <ul className="space-y-3 mb-8">

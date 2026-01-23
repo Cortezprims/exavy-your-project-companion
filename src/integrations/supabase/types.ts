@@ -482,6 +482,54 @@ export type Database = {
         }
         Relationships: []
       }
+      pawapay_transactions: {
+        Row: {
+          amount: string
+          callback_received: boolean | null
+          completed_at: string | null
+          created_at: string
+          currency: string
+          deposit_id: string
+          failure_reason: string | null
+          id: string
+          phone_number: string
+          provider: string
+          status: string
+          subscription_plan: string
+          user_id: string
+        }
+        Insert: {
+          amount: string
+          callback_received?: boolean | null
+          completed_at?: string | null
+          created_at?: string
+          currency?: string
+          deposit_id: string
+          failure_reason?: string | null
+          id?: string
+          phone_number: string
+          provider: string
+          status?: string
+          subscription_plan: string
+          user_id: string
+        }
+        Update: {
+          amount?: string
+          callback_received?: boolean | null
+          completed_at?: string | null
+          created_at?: string
+          currency?: string
+          deposit_id?: string
+          failure_reason?: string | null
+          id?: string
+          phone_number?: string
+          provider?: string
+          status?: string
+          subscription_plan?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       presentations: {
         Row: {
           created_at: string
