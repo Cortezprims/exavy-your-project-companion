@@ -482,6 +482,33 @@ export type Database = {
         }
         Relationships: []
       }
+      otp_codes: {
+        Row: {
+          code: string
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          verified: boolean | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          email: string
+          expires_at: string
+          id?: string
+          verified?: boolean | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
       pawapay_transactions: {
         Row: {
           amount: string
@@ -580,8 +607,51 @@ export type Database = {
           },
         ]
       }
+      project_documents: {
+        Row: {
+          created_at: string
+          document_id: string
+          id: string
+          is_pinned: boolean | null
+          project_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          document_id: string
+          id?: string
+          is_pinned?: boolean | null
+          project_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          document_id?: string
+          id?: string
+          is_pinned?: boolean | null
+          project_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_documents_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_documents_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projects: {
         Row: {
+          category: string | null
           color: string | null
           created_at: string
           description: string | null
@@ -593,6 +663,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          category?: string | null
           color?: string | null
           created_at?: string
           description?: string | null
@@ -604,6 +675,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          category?: string | null
           color?: string | null
           created_at?: string
           description?: string | null

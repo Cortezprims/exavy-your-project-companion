@@ -47,23 +47,29 @@ serve(async (req) => {
     // Use service role for database operations
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Check if user has premium subscription
-    const { data: subscription } = await supabase
-      .from('subscriptions')
-      .select('plan, status, expires_at')
-      .eq('user_id', userId)
-      .eq('status', 'active')
-      .maybeSingle();
+    // Check if user is admin (bypass premium check)
+    const { data: isAdminResult } = await supabase.rpc('is_admin', { _user_id: userId });
+    const isAdmin = isAdminResult === true;
 
-    const isPremium = subscription && 
-      (subscription.plan === 'monthly' || subscription.plan === 'yearly') &&
-      (!subscription.expires_at || new Date(subscription.expires_at) > new Date());
+    // Check if user has premium subscription (skip for admins)
+    if (!isAdmin) {
+      const { data: subscription } = await supabase
+        .from('subscriptions')
+        .select('plan, status, expires_at')
+        .eq('user_id', userId)
+        .eq('status', 'active')
+        .maybeSingle();
 
-    if (!isPremium) {
-      return new Response(
-        JSON.stringify({ error: 'Premium subscription required', isPremium: false }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      const isPremium = subscription && 
+        (subscription.plan === 'monthly' || subscription.plan === 'yearly') &&
+        (!subscription.expires_at || new Date(subscription.expires_at) > new Date());
+
+      if (!isPremium) {
+        return new Response(
+          JSON.stringify({ error: 'Premium subscription required', isPremium: false }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     // Get user's documents with content

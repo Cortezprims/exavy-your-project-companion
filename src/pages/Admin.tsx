@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { CodeExportDialog } from '@/components/admin/CodeExportDialog';
 import { 
   Shield, 
   Users, 
@@ -27,7 +28,8 @@ import {
   MessageSquare,
   Mail,
   Phone,
-  Calendar
+  Calendar,
+  FileCode
 } from 'lucide-react';
 
 interface UserSession {
@@ -80,6 +82,7 @@ const Admin = () => {
   const [blockDialog, setBlockDialog] = useState<{ open: boolean; userId: string; email: string } | null>(null);
   const [blockDuration, setBlockDuration] = useState<string>('permanent');
   const [blockReason, setBlockReason] = useState('');
+  const [showCodeExport, setShowCodeExport] = useState(false);
 
   useEffect(() => {
     if (!adminLoading && !isAdmin) {
@@ -284,12 +287,18 @@ const Admin = () => {
   return (
     <MainLayout>
       <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <Shield className="w-8 h-8 text-primary" />
-          <div>
-            <h1 className="text-2xl font-bold">Panneau d'Administration</h1>
-            <p className="text-muted-foreground">Gérez les utilisateurs et les tickets de support</p>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Shield className="w-8 h-8 text-primary" />
+            <div>
+              <h1 className="text-2xl font-bold">Panneau d'Administration</h1>
+              <p className="text-muted-foreground">Gérez les utilisateurs et les tickets de support</p>
+            </div>
           </div>
+          <Button onClick={() => setShowCodeExport(true)} variant="outline">
+            <FileCode className="w-4 h-4 mr-2" />
+            Export du Code
+          </Button>
         </div>
 
         {/* Stats */}
@@ -648,6 +657,12 @@ const Admin = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Code Export Dialog */}
+        <CodeExportDialog 
+          open={showCodeExport} 
+          onOpenChange={setShowCodeExport} 
+        />
       </div>
     </MainLayout>
   );
