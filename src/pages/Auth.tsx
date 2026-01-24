@@ -9,9 +9,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { Sparkles, Mail, Lock, User, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { TermsDialog } from '@/components/auth/TermsDialog';
+import { OTPVerification } from '@/components/auth/OTPVerification';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { FileText, ExternalLink } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -25,6 +27,11 @@ const Auth = () => {
   const [showTermsDialog, setShowTermsDialog] = useState(false);
   const [showTermsReadOnly, setShowTermsReadOnly] = useState(false);
   const [pendingSignup, setPendingSignup] = useState<{ email: string; password: string } | null>(null);
+  
+  // OTP states
+  const [showOTPVerification, setShowOTPVerification] = useState(false);
+  const [otpEmail, setOtpEmail] = useState('');
+  const [sendingOTP, setSendingOTP] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,7 +64,7 @@ const Auth = () => {
     }
   };
 
-  const handleSignupSubmit = (e: React.FormEvent) => {
+  const handleSignupSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!signupEmail || !signupPassword) {
@@ -70,8 +77,31 @@ const Auth = () => {
       return;
     }
 
-    // Store the signup data and show terms dialog
-    setPendingSignup({ email: signupEmail, password: signupPassword });
+    // Send OTP for email verification
+    setSendingOTP(true);
+    try {
+      const { error } = await supabase.functions.invoke('send-otp', {
+        body: { email: signupEmail },
+      });
+
+      if (error) {
+        toast.error('Erreur lors de l\'envoi du code de vérification');
+        return;
+      }
+
+      setOtpEmail(signupEmail);
+      setPendingSignup({ email: signupEmail, password: signupPassword });
+      setShowOTPVerification(true);
+      toast.success('Code de vérification envoyé par email !');
+    } catch (error) {
+      toast.error('Erreur lors de l\'envoi du code');
+    } finally {
+      setSendingOTP(false);
+    }
+  };
+
+  const handleOTPVerified = () => {
+    setShowOTPVerification(false);
     setShowTermsDialog(true);
   };
 
@@ -89,7 +119,15 @@ const Auth = () => {
         }
         return;
       }
-      toast.success('Compte créé avec succès !');
+      
+      // Create trial subscription for new user
+      try {
+        await supabase.functions.invoke('create-trial-subscription');
+      } catch (trialError) {
+        console.error('Trial creation error:', trialError);
+      }
+      
+      toast.success('Compte créé avec 3 jours d\'essai Premium gratuit !');
       navigate('/dashboard');
     } catch (error: any) {
       console.error('Signup error:', error);
@@ -98,6 +136,11 @@ const Auth = () => {
       setLoading(false);
       setPendingSignup(null);
     }
+  };
+
+  const handleCancelOTP = () => {
+    setShowOTPVerification(false);
+    setPendingSignup(null);
   };
 
   return (
@@ -113,133 +156,153 @@ const Auth = () => {
           <CardDescription>Votre assistant d'apprentissage intelligent</CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Connexion</TabsTrigger>
-              <TabsTrigger value="signup">Inscription</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="login">
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="login-email">Email</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="login-email"
-                      type="email"
-                      placeholder="votre@email.com"
-                      className="pl-10"
-                      value={loginEmail}
-                      onChange={(e) => setLoginEmail(e.target.value)}
-                      required
-                      disabled={loading}
-                    />
+          {showOTPVerification ? (
+            <OTPVerification
+              email={otpEmail}
+              onVerified={handleOTPVerified}
+              onCancel={handleCancelOTP}
+            />
+          ) : (
+            <Tabs defaultValue="login" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="login">Connexion</TabsTrigger>
+                <TabsTrigger value="signup">Inscription</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="login">
+                <form onSubmit={handleLogin} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="login-email">Email</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="login-email"
+                        type="email"
+                        placeholder="votre@email.com"
+                        className="pl-10"
+                        value={loginEmail}
+                        onChange={(e) => setLoginEmail(e.target.value)}
+                        required
+                        disabled={loading}
+                      />
+                    </div>
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="login-password">Mot de passe</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="login-password"
-                      type="password"
-                      placeholder="••••••••"
-                      className="pl-10"
-                      value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
-                      required
-                      disabled={loading}
-                    />
+                  <div className="space-y-2">
+                    <Label htmlFor="login-password">Mot de passe</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="login-password"
+                        type="password"
+                        placeholder="••••••••"
+                        className="pl-10"
+                        value={loginPassword}
+                        onChange={(e) => setLoginPassword(e.target.value)}
+                        required
+                        disabled={loading}
+                      />
+                    </div>
                   </div>
-                </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Connexion...
-                    </>
-                  ) : (
-                    'Se connecter'
-                  )}
-                </Button>
-              </form>
-            </TabsContent>
-            
-            <TabsContent value="signup">
-              <form onSubmit={handleSignupSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signup-name">Nom (optionnel)</Label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="signup-name"
-                      type="text"
-                      placeholder="Votre nom"
-                      className="pl-10"
-                      value={signupName}
-                      onChange={(e) => setSignupName(e.target.value)}
-                      disabled={loading}
-                    />
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Connexion...
+                      </>
+                    ) : (
+                      'Se connecter'
+                    )}
+                  </Button>
+                </form>
+              </TabsContent>
+              
+              <TabsContent value="signup">
+                <form onSubmit={handleSignupSubmit} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-name">Nom (optionnel)</Label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="signup-name"
+                        type="text"
+                        placeholder="Votre nom"
+                        className="pl-10"
+                        value={signupName}
+                        onChange={(e) => setSignupName(e.target.value)}
+                        disabled={loading || sendingOTP}
+                      />
+                    </div>
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="signup-email"
-                      type="email"
-                      placeholder="votre@email.com"
-                      className="pl-10"
-                      value={signupEmail}
-                      onChange={(e) => setSignupEmail(e.target.value)}
-                      required
-                      disabled={loading}
-                    />
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-email">Email</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="signup-email"
+                        type="email"
+                        placeholder="votre@email.com"
+                        className="pl-10"
+                        value={signupEmail}
+                        onChange={(e) => setSignupEmail(e.target.value)}
+                        required
+                        disabled={loading || sendingOTP}
+                      />
+                    </div>
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-password">Mot de passe</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="signup-password"
-                      type="password"
-                      placeholder="••••••••"
-                      className="pl-10"
-                      value={signupPassword}
-                      onChange={(e) => setSignupPassword(e.target.value)}
-                      required
-                      minLength={6}
-                      disabled={loading}
-                    />
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-password">Mot de passe</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="signup-password"
+                        type="password"
+                        placeholder="••••••••"
+                        className="pl-10"
+                        value={signupPassword}
+                        onChange={(e) => setSignupPassword(e.target.value)}
+                        required
+                        minLength={6}
+                        disabled={loading || sendingOTP}
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">Minimum 6 caractères</p>
                   </div>
-                  <p className="text-xs text-muted-foreground">Minimum 6 caractères</p>
-                </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Création...
-                    </>
-                  ) : (
-                    'Créer un compte'
-                  )}
-                </Button>
-                <p className="text-xs text-center text-muted-foreground">
-                  En créant un compte, vous acceptez nos{' '}
-                  <button 
-                    type="button"
-                    onClick={() => setShowTermsReadOnly(true)}
-                    className="text-primary hover:underline font-medium"
-                  >
-                    conditions d'utilisation
-                  </button>
-                </p>
-              </form>
-            </TabsContent>
-          </Tabs>
+                  
+                  <div className="rounded-lg bg-primary/5 border border-primary/20 p-3">
+                    <p className="text-xs text-center text-muted-foreground">
+                      🎉 <span className="font-medium text-primary">3 jours d'essai Premium gratuit</span> à la création du compte !
+                    </p>
+                  </div>
+                  
+                  <Button type="submit" className="w-full" disabled={loading || sendingOTP}>
+                    {sendingOTP ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Envoi du code...
+                      </>
+                    ) : loading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Création...
+                      </>
+                    ) : (
+                      'Créer un compte'
+                    )}
+                  </Button>
+                  <p className="text-xs text-center text-muted-foreground">
+                    En créant un compte, vous acceptez nos{' '}
+                    <button 
+                      type="button"
+                      onClick={() => setShowTermsReadOnly(true)}
+                      className="text-primary hover:underline font-medium"
+                    >
+                      conditions d'utilisation
+                    </button>
+                  </p>
+                </form>
+              </TabsContent>
+            </Tabs>
+          )}
         </CardContent>
       </Card>
 
