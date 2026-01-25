@@ -1108,6 +1108,8 @@ export type Database = {
         Args: { p_resource_type: string; p_user_id: string }
         Returns: Json
       }
+      cleanup_expired_otp_codes: { Args: never; Returns: undefined }
+      cleanup_old_sessions: { Args: never; Returns: undefined }
       get_plan_limits: {
         Args: { plan_type: Database["public"]["Enums"]["subscription_plan"] }
         Returns: Json
