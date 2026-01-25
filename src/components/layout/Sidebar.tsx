@@ -26,6 +26,7 @@ import {
   Shield,
   HelpCircle
 } from "lucide-react";
+import { TicketNotification } from "@/components/admin/TicketNotification";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
@@ -116,13 +117,16 @@ export const Sidebar = () => {
       >
         {/* Logo */}
         <div className="p-6 border-b border-border">
-          <div className="flex items-center gap-3">
-            <img 
-              src="/exavy-logo.jpg" 
-              alt="EXAVY Logo" 
-              className="w-10 h-10 rounded-xl object-cover"
-            />
-            <span className="font-bold text-xl text-foreground">EXAVY</span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <img 
+                src="/exavy-logo.jpg" 
+                alt="EXAVY Logo" 
+                className="w-10 h-10 rounded-xl object-cover"
+              />
+              <span className="font-bold text-xl text-foreground">EXAVY</span>
+            </div>
+            <TicketNotification />
           </div>
         </div>
 
