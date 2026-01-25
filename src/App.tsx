@@ -27,6 +27,7 @@ import Presentations from "./pages/Presentations";
 import Projects from "./pages/Projects";
 import Admin from "./pages/Admin";
 import Help from "./pages/Help";
+import Install from "./pages/Install";
 
 const queryClient = new QueryClient();
 
@@ -209,6 +210,7 @@ const App = () => (
                 <Help />
               </ProtectedRoute>
             } />
+            <Route path="/install" element={<Install />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -1,57 +1,57 @@
-import { useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
-import { useAdmin } from "@/hooks/useAdmin";
-import { cn } from "@/lib/utils";
-import {
-  Home,
-  FileText,
-  Brain,
-  MessageSquare,
-  Calendar,
-  User,
-  CreditCard,
-  Settings,
+import { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { useAdmin } from '@/hooks/useAdmin';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { TicketNotification } from '@/components/admin/TicketNotification';
+import { 
+  LayoutDashboard, 
+  FileText, 
+  Brain, 
+  BookOpen, 
+  Sparkles, 
+  MessageSquare, 
+  FolderKanban,
+  Map,
+  User, 
+  CreditCard, 
+  HelpCircle, 
+  Settings, 
   LogOut,
-  Sparkles,
-  BookOpen,
-  PenTool,
-  Languages,
-  Target,
   Menu,
   X,
-  ClipboardList,
-  Presentation,
-  FolderKanban,
-  GraduationCap,
   Shield,
-  HelpCircle
-} from "lucide-react";
-import { TicketNotification } from "@/components/admin/TicketNotification";
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
+  Calendar,
+  Target,
+  Languages,
+  GraduationCap,
+  ClipboardList,
+  Presentation
+} from 'lucide-react';
 
 const menuItems = [
-  { icon: Home, label: "Tableau de bord", path: "/dashboard" },
-  { icon: FileText, label: "Documents", path: "/documents" },
-  { icon: Brain, label: "Quiz", path: "/quiz" },
-  { icon: BookOpen, label: "Flashcards", path: "/flashcards" },
-  { icon: Sparkles, label: "Mind Maps", path: "/mindmap" },
-  { icon: MessageSquare, label: "Chat IA", path: "/chat" },
-  { icon: PenTool, label: "Résumés", path: "/summaries" },
-  { icon: ClipboardList, label: "Exercices", path: "/exercises" },
-  { icon: GraduationCap, label: "Examens blancs", path: "/mock-exam" },
-  { icon: Presentation, label: "Présentations", path: "/presentations" },
-  { icon: FolderKanban, label: "Projets", path: "/projects" },
-  { icon: Languages, label: "Reformulation", path: "/rephrase" },
-  { icon: Calendar, label: "Planning", path: "/planning" },
-  { icon: Target, label: "Compétences", path: "/skills" },
+  { icon: LayoutDashboard, label: 'Tableau de bord', path: '/dashboard' },
+  { icon: FileText, label: 'Documents', path: '/documents' },
+  { icon: Brain, label: 'Quiz', path: '/quiz' },
+  { icon: BookOpen, label: 'Flashcards', path: '/flashcards' },
+  { icon: Sparkles, label: 'Résumés', path: '/summaries' },
+  { icon: Map, label: 'Mind Maps', path: '/mindmap' },
+  { icon: MessageSquare, label: 'EXABOT', path: '/chat' },
+  { icon: FolderKanban, label: 'Projets', path: '/projects' },
+  { icon: Calendar, label: 'Planning', path: '/planning' },
+  { icon: Target, label: 'Compétences', path: '/skills' },
+  { icon: Languages, label: 'Reformuler', path: '/rephrase' },
+  { icon: ClipboardList, label: 'Exercices', path: '/exercises' },
+  { icon: GraduationCap, label: 'Examens blancs', path: '/mock-exam' },
+  { icon: Presentation, label: 'Présentations', path: '/presentations' },
 ];
 
 const bottomMenuItems = [
-  { icon: User, label: "Profil", path: "/profile" },
-  { icon: CreditCard, label: "Abonnement", path: "/subscription" },
-  { icon: HelpCircle, label: "Aide", path: "/help" },
-  { icon: Settings, label: "Paramètres", path: "/settings" },
+  { icon: User, label: 'Profil', path: '/profile' },
+  { icon: CreditCard, label: 'Abonnement', path: '/subscription' },
+  { icon: HelpCircle, label: 'Aide', path: '/help' },
+  { icon: Settings, label: 'Paramètres', path: '/settings' },
 ];
 
 export const Sidebar = () => {
@@ -63,11 +63,12 @@ export const Sidebar = () => {
 
   const handleSignOut = async () => {
     await signOut();
-    navigate("/");
+    navigate('/');
   };
 
   const NavItem = ({ icon: Icon, label, path }: { icon: any; label: string; path: string }) => {
     const isActive = location.pathname === path;
+    
     return (
       <button
         onClick={() => {
@@ -75,83 +76,127 @@ export const Sidebar = () => {
           setIsOpen(false);
         }}
         className={cn(
-          "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200",
-          isActive
-            ? "bg-primary text-primary-foreground shadow-md"
-            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+          "nav-item-bauhaus w-full text-left group",
+          isActive && "active"
         )}
       >
-        <Icon className="w-5 h-5" />
-        <span>{label}</span>
+        <div className={cn(
+          "w-8 h-8 flex items-center justify-center transition-all duration-200",
+          isActive ? "bg-accent text-accent-foreground" : "bg-transparent"
+        )}>
+          <Icon className="w-4 h-4" />
+        </div>
+        <span className="text-sm font-medium">{label}</span>
+        {isActive && (
+          <div className="absolute right-4 w-2 h-2 bg-accent" />
+        )}
       </button>
     );
   };
 
   return (
     <>
-      {/* Mobile toggle - bigger and more visible */}
+      {/* Mobile Menu Button */}
       <Button
-        variant="default"
+        variant="ghost"
         size="icon"
-        className="fixed top-4 left-4 z-50 md:hidden h-12 w-12 rounded-xl shadow-lg bg-primary hover:bg-primary/90"
+        className="fixed top-4 left-4 z-50 md:hidden border-2 border-foreground bg-background h-12 w-12"
         onClick={() => setIsOpen(!isOpen)}
       >
-        {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
       </Button>
 
-      {/* Overlay */}
+      {/* Mobile Overlay */}
       {isOpen && (
-        <div
-          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 md:hidden"
+        <div 
+          className="fixed inset-0 bg-foreground/50 z-40 md:hidden backdrop-blur-sm"
           onClick={() => setIsOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <aside
+      <aside 
         className={cn(
-          "fixed left-0 top-0 h-full w-64 bg-card border-r border-border z-50 flex flex-col transition-transform duration-300",
-          "md:translate-x-0",
+          "fixed left-0 top-0 h-full bg-sidebar text-sidebar-foreground z-40 transition-transform duration-300 w-64 flex flex-col border-r-4 border-accent",
           isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         )}
       >
-        {/* Logo */}
-        <div className="p-6 border-b border-border">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <img 
-                src="/exavy-logo.jpg" 
-                alt="EXAVY Logo" 
-                className="w-10 h-10 rounded-xl object-cover"
-              />
-              <span className="font-bold text-xl text-foreground">EXAVY</span>
+        {/* Logo Section */}
+        <div className="p-6 border-b border-sidebar-border">
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <div className="w-10 h-10 bg-primary flex items-center justify-center">
+                <span className="text-xl font-black text-primary-foreground">E</span>
+              </div>
+              <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-accent" />
             </div>
+            <div>
+              <h2 className="text-lg font-black tracking-tight">EXAVY</h2>
+              <p className="text-xs text-sidebar-foreground/60 uppercase tracking-wider">Productivité IA</p>
+            </div>
+          </div>
+          
+          {/* Ticket Notification for admins */}
+          <div className="mt-4">
             <TicketNotification />
           </div>
         </div>
 
-        {/* Main navigation */}
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+        {/* Main Navigation */}
+        <nav className="flex-1 overflow-y-auto py-4">
+          <div className="px-3 mb-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-sidebar-foreground/40 px-4">
+              Navigation
+            </span>
+          </div>
           {menuItems.map((item) => (
             <NavItem key={item.path} {...item} />
           ))}
+          
+          {/* Admin link */}
+          {isAdmin && (
+            <>
+              <div className="px-3 my-4">
+                <div className="h-0.5 bg-sidebar-border" />
+              </div>
+              <div className="px-3 mb-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-secondary px-4">
+                  Admin
+                </span>
+              </div>
+              <NavItem icon={Shield} label="Administration" path="/admin" />
+            </>
+          )}
         </nav>
 
-        {/* Bottom navigation */}
-        <div className="p-4 border-t border-border space-y-1">
-          {isAdmin && (
-            <NavItem icon={Shield} label="Administration" path="/admin" />
-          )}
+        {/* Bottom Navigation */}
+        <div className="border-t border-sidebar-border py-4">
+          <div className="px-3 mb-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-sidebar-foreground/40 px-4">
+              Compte
+            </span>
+          </div>
           {bottomMenuItems.map((item) => (
             <NavItem key={item.path} {...item} />
           ))}
+          
+          {/* Sign Out Button */}
           <button
             onClick={handleSignOut}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-destructive hover:bg-destructive/10 transition-all duration-200"
+            className="nav-item-bauhaus w-full text-left text-secondary hover:bg-secondary/10"
           >
-            <LogOut className="w-5 h-5" />
-            <span>Déconnexion</span>
+            <div className="w-8 h-8 flex items-center justify-center">
+              <LogOut className="w-4 h-4" />
+            </div>
+            <span className="text-sm font-medium">Déconnexion</span>
           </button>
+        </div>
+
+        {/* Geometric decoration */}
+        <div className="absolute bottom-0 left-0 w-full h-2 flex">
+          <div className="flex-1 bg-primary" />
+          <div className="flex-1 bg-secondary" />
+          <div className="flex-1 bg-accent" />
         </div>
       </aside>
     </>

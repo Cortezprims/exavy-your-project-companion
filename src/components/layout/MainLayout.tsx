@@ -16,12 +16,12 @@ export const MainLayout = ({ children, showBackButton = true }: MainLayoutProps)
   const shouldShowBackButton = showBackButton && !isHomePage;
   
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background grid-bauhaus">
       <Sidebar />
-      <main className="md:ml-64 min-h-screen">
+      <main className="md:ml-64 min-h-screen relative">
         {shouldShowBackButton && (
           <div className="fixed top-4 left-20 md:left-[17rem] z-40">
-            <BackButton className="bg-background/80 backdrop-blur-sm shadow-sm border" />
+            <BackButton className="bg-background border-2 border-foreground font-bold uppercase text-xs tracking-wider" />
           </div>
         )}
         {children}

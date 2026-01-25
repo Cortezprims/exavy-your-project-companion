@@ -15,7 +15,8 @@ import {
   Clock,
   Target,
   Zap,
-  Loader2
+  Loader2,
+  ArrowRight
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
@@ -56,7 +57,6 @@ const Dashboard = () => {
     try {
       setLoading(true);
       
-      // Fetch all stats in parallel
       const [documentsRes, quizzesRes, flashcardsRes, summariesRes] = await Promise.all([
         supabase
           .from('documents')
@@ -80,7 +80,6 @@ const Dashboard = () => {
           .limit(5)
       ]);
 
-      // Set stats
       setStats({
         documents: documentsRes.count || 0,
         quizzes: quizzesRes.count || 0,
@@ -88,10 +87,8 @@ const Dashboard = () => {
         summaries: summariesRes.count || 0
       });
 
-      // Build recent activity from all sources
       const activities: RecentActivity[] = [];
 
-      // Add documents
       if (documentsRes.data) {
         documentsRes.data.forEach(doc => {
           activities.push({
@@ -103,7 +100,6 @@ const Dashboard = () => {
         });
       }
 
-      // Add quizzes
       if (quizzesRes.data) {
         quizzesRes.data.forEach(quiz => {
           activities.push({
@@ -115,9 +111,7 @@ const Dashboard = () => {
         });
       }
 
-      // Add flashcards (group by deck would be better but we'll show individual for now)
       if (flashcardsRes.data && flashcardsRes.data.length > 0) {
-        // Just show one entry for flashcards if any exist
         const latestFlashcard = flashcardsRes.data[0];
         activities.push({
           action: 'Flashcard créée',
@@ -127,7 +121,6 @@ const Dashboard = () => {
         });
       }
 
-      // Add summaries
       if (summariesRes.data) {
         summariesRes.data.forEach(summary => {
           activities.push({
@@ -139,12 +132,6 @@ const Dashboard = () => {
         });
       }
 
-      // Sort by time (most recent first) and take top 5
-      activities.sort((a, b) => {
-        // Parse the French relative time - this is approximate but good enough for display
-        return 0; // Keep original order since we're already limiting
-      });
-
       setRecentActivity(activities.slice(0, 5));
 
     } catch (error) {
@@ -155,56 +142,78 @@ const Dashboard = () => {
   };
 
   const statsDisplay = [
-    { label: 'Documents', value: stats.documents, icon: FileText, color: 'text-primary' },
-    { label: 'Quiz créés', value: stats.quizzes, icon: Brain, color: 'text-secondary' },
-    { label: 'Flashcards', value: stats.flashcards, icon: BookOpen, color: 'text-warning' },
-    { label: 'Résumés', value: stats.summaries, icon: Sparkles, color: 'text-primary' },
+    { label: 'Documents', value: stats.documents, icon: FileText, bgColor: 'bg-primary', textColor: 'text-primary-foreground' },
+    { label: 'Quiz créés', value: stats.quizzes, icon: Brain, bgColor: 'bg-secondary', textColor: 'text-secondary-foreground' },
+    { label: 'Flashcards', value: stats.flashcards, icon: BookOpen, bgColor: 'bg-accent', textColor: 'text-accent-foreground' },
+    { label: 'Résumés', value: stats.summaries, icon: Sparkles, bgColor: 'bg-foreground', textColor: 'text-background' },
   ];
+
+  const quickActions = [
+    { label: 'Nouveau Quiz', icon: Brain, path: '/quiz', color: 'bg-primary hover:bg-primary/90' },
+    { label: 'Flashcards', icon: BookOpen, path: '/flashcards', color: 'bg-secondary hover:bg-secondary/90' },
+    { label: 'Résumé IA', icon: Sparkles, path: '/summaries', color: 'bg-accent hover:bg-accent/90 text-accent-foreground' },
+    { label: 'Chat IA', icon: FileText, path: '/chat', color: 'bg-foreground hover:bg-foreground/90 text-background' },
+  ];
+
+  const getActivityColor = (type: string) => {
+    switch (type) {
+      case 'document': return 'bg-primary';
+      case 'quiz': return 'bg-secondary';
+      case 'flashcard': return 'bg-accent';
+      case 'summary': return 'bg-foreground';
+      default: return 'bg-muted-foreground';
+    }
+  };
 
   return (
     <MainLayout>
       <DailyTipDialog />
-      <div className="p-6 space-y-6">
-        {/* Header - adjusted for mobile menu button */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="p-6 md:p-8 space-y-8 animate-fade-in">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
           <div className="ml-16 md:ml-0">
-            <h1 className="text-2xl font-bold">
-              Bonjour, {user?.email?.split('@')[0] || 'Étudiant'} 👋
+            <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-2">
+              Bienvenue
+            </p>
+            <h1 className="text-3xl md:text-4xl">
+              {user?.email?.split('@')[0] || 'Étudiant'} 👋
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground mt-2">
               Prêt à continuer votre apprentissage ?
             </p>
           </div>
-          <Button asChild>
-            <Link to="/documents">
-              <FileText className="w-4 h-4 mr-2" />
+          <Button asChild className="btn-bauhaus bg-primary text-primary-foreground border-primary">
+            <Link to="/documents" className="gap-2">
+              <FileText className="w-4 h-4" />
               Ajouter un document
+              <ArrowRight className="w-4 h-4" />
             </Link>
           </Button>
         </div>
 
-        {/* Stats Grid */}
+        {/* Stats Grid - Bento Style */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {statsDisplay.map((stat) => {
+          {statsDisplay.map((stat, index) => {
             const Icon = stat.icon;
             return (
-              <Card key={stat.label}>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg bg-muted ${stat.color}`}>
-                      <Icon className="w-5 h-5" />
-                    </div>
-                    <div>
-                      {loading ? (
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                      ) : (
-                        <p className="text-2xl font-bold">{stat.value}</p>
-                      )}
-                      <p className="text-sm text-muted-foreground">{stat.label}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <div 
+                key={stat.label} 
+                className={`bento-card p-6 animate-slide-up stagger-${index + 1}`}
+              >
+                <div className={`stat-bento-icon ${stat.bgColor} ${stat.textColor}`}>
+                  <Icon className="w-6 h-6" />
+                </div>
+                {loading ? (
+                  <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                ) : (
+                  <p className="text-4xl font-black">{stat.value}</p>
+                )}
+                <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider mt-2">
+                  {stat.label}
+                </p>
+                {/* Geometric accent */}
+                <div className={`absolute top-0 right-0 w-4 h-4 ${stat.bgColor}`} />
+              </div>
             );
           })}
         </div>
@@ -212,106 +221,119 @@ const Dashboard = () => {
         {/* Progress and Activity */}
         <div className="grid md:grid-cols-2 gap-6">
           {/* Weekly Progress */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Target className="w-5 h-5 text-primary" />
-                Votre progression
-              </CardTitle>
-              <CardDescription>Statistiques globales</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <div className="bento-card">
+            <div className="p-6 border-b-2 border-border">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-primary flex items-center justify-center">
+                  <Target className="w-5 h-5 text-primary-foreground" />
+                </div>
+                <div>
+                  <h3 className="font-bold">Votre progression</h3>
+                  <p className="text-sm text-muted-foreground">Statistiques globales</p>
+                </div>
+              </div>
+            </div>
+            <div className="p-6 space-y-6">
               <div>
-                <div className="flex justify-between text-sm mb-2">
-                  <span>Total: {stats.documents + stats.quizzes + stats.summaries} éléments créés</span>
+                <div className="flex justify-between text-sm mb-3">
+                  <span className="font-bold">
+                    Total: {stats.documents + stats.quizzes + stats.summaries} éléments
+                  </span>
                   <span className="text-muted-foreground">{stats.flashcards} flashcards</span>
                 </div>
-                <Progress 
-                  value={Math.min(((stats.documents + stats.quizzes) / 10) * 100, 100)} 
-                  className="h-2" 
-                />
+                <div className="progress-bauhaus">
+                  <div 
+                    style={{ width: `${Math.min(((stats.documents + stats.quizzes) / 10) * 100, 100)}%` }}
+                  />
+                </div>
               </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <TrendingUp className="w-4 h-4 text-secondary" />
-                <span>Continuez comme ça !</span>
+              <div className="flex items-center gap-3 p-4 bg-muted border-l-4 border-secondary">
+                <TrendingUp className="w-5 h-5 text-secondary" />
+                <span className="font-medium">Continuez comme ça !</span>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+            {/* Corner accents */}
+            <div className="absolute bottom-0 left-0 w-6 h-6 bg-secondary" />
+          </div>
 
           {/* Recent Activity */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="w-5 h-5 text-primary" />
-                Activité récente
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+          <div className="bento-card">
+            <div className="p-6 border-b-2 border-border">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-accent flex items-center justify-center">
+                  <Clock className="w-5 h-5 text-accent-foreground" />
+                </div>
+                <h3 className="font-bold">Activité récente</h3>
+              </div>
+            </div>
+            <div className="p-6">
               {loading ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
                 </div>
               ) : recentActivity.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Clock className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                  <p>Aucune activité récente</p>
-                  <p className="text-sm">Commencez par ajouter un document !</p>
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 bg-muted flex items-center justify-center mx-auto mb-4">
+                    <Clock className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                  <p className="font-bold">Aucune activité récente</p>
+                  <p className="text-sm text-muted-foreground mt-1">Commencez par ajouter un document !</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {recentActivity.map((activity, index) => (
-                    <div key={index} className="flex items-start gap-3">
-                      <div className="w-2 h-2 rounded-full bg-primary mt-2" />
+                    <div key={index} className="flex items-start gap-4 group hover-geo">
+                      <div className={`w-3 h-3 mt-1.5 ${getActivityColor(activity.type)}`} />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium">{activity.action}</p>
+                        <p className="font-bold text-sm">{activity.action}</p>
                         <p className="text-sm text-muted-foreground truncate">{activity.subject}</p>
                       </div>
-                      <span className="text-xs text-muted-foreground whitespace-nowrap">{activity.time}</span>
+                      <span className="text-xs text-muted-foreground whitespace-nowrap font-medium">
+                        {activity.time}
+                      </span>
                     </div>
                   ))}
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+            {/* Corner accent */}
+            <div className="absolute top-0 right-0 w-6 h-6 bg-accent" />
+          </div>
         </div>
 
-        {/* Quick Actions */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Zap className="w-5 h-5 text-warning" />
-              Actions rapides
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Button variant="outline" className="h-auto py-4 flex-col gap-2" asChild>
-                <Link to="/quiz">
-                  <Brain className="w-6 h-6 text-primary" />
-                  <span>Nouveau Quiz</span>
-                </Link>
-              </Button>
-              <Button variant="outline" className="h-auto py-4 flex-col gap-2" asChild>
-                <Link to="/flashcards">
-                  <BookOpen className="w-6 h-6 text-secondary" />
-                  <span>Flashcards</span>
-                </Link>
-              </Button>
-              <Button variant="outline" className="h-auto py-4 flex-col gap-2" asChild>
-                <Link to="/summaries">
-                  <Sparkles className="w-6 h-6 text-warning" />
-                  <span>Résumé IA</span>
-                </Link>
-              </Button>
-              <Button variant="outline" className="h-auto py-4 flex-col gap-2" asChild>
-                <Link to="/chat">
-                  <FileText className="w-6 h-6 text-primary" />
-                  <span>Chat IA</span>
-                </Link>
-              </Button>
+        {/* Quick Actions - Bento Grid */}
+        <div className="bento-card">
+          <div className="p-6 border-b-2 border-border flex items-center gap-3">
+            <div className="w-10 h-10 bg-foreground flex items-center justify-center">
+              <Zap className="w-5 h-5 text-background" />
             </div>
-          </CardContent>
-        </Card>
+            <h3 className="font-bold">Actions rapides</h3>
+          </div>
+          <div className="p-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {quickActions.map((action, index) => {
+                const Icon = action.icon;
+                return (
+                  <Link 
+                    key={action.path} 
+                    to={action.path}
+                    className={`relative p-6 flex flex-col items-center gap-3 text-center border-2 border-foreground transition-all duration-200 hover:-translate-x-1 hover:-translate-y-1 ${action.color} text-primary-foreground animate-scale-in stagger-${index + 1}`}
+                    style={{ boxShadow: '4px 4px 0px hsl(var(--foreground))' }}
+                  >
+                    <Icon className="w-8 h-8" />
+                    <span className="font-bold text-sm uppercase tracking-wide">{action.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+          {/* Geometric decoration */}
+          <div className="absolute bottom-0 right-0 flex">
+            <div className="w-4 h-4 bg-primary" />
+            <div className="w-4 h-4 bg-secondary" />
+            <div className="w-4 h-4 bg-accent" />
+          </div>
+        </div>
       </div>
     </MainLayout>
   );
