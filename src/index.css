@@ -2,135 +2,157 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
+/* EXAVY Design System - Bauhaus Modern Style
+   Geometric layouts, primary colors (red, blue, yellow), paper texture, Swiss high-end design
+   All colors MUST be HSL.
 */
 
 @layer base {
   :root {
-    /* Background colors - Light Mode (#FFFFFF, #F5F7FA) */
-    --background: 0 0% 100%;
-    --foreground: 0 0% 10%;
+    /* Bauhaus Primary Colors */
+    --bauhaus-red: 4 85% 52%;
+    --bauhaus-blue: 217 91% 50%;
+    --bauhaus-yellow: 48 100% 50%;
+    --bauhaus-black: 0 0% 8%;
+    --bauhaus-white: 45 30% 96%;
+    
+    /* Paper texture background */
+    --background: 45 30% 97%;
+    --foreground: 0 0% 8%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 10%;
+    --card: 45 40% 99%;
+    --card-foreground: 0 0% 8%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 10%;
+    --popover: 45 40% 99%;
+    --popover-foreground: 0 0% 8%;
 
-    /* Primary color - Blue #2196F3 */
-    --primary: 207 90% 54%;
+    /* Primary - Bauhaus Blue */
+    --primary: 217 91% 50%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary color - Green #4CAF50 */
-    --secondary: 122 39% 49%;
+    /* Secondary - Bauhaus Red */
+    --secondary: 4 85% 52%;
     --secondary-foreground: 0 0% 100%;
 
-    /* Muted colors - Gray */
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 46%;
+    /* Accent - Bauhaus Yellow */
+    --accent: 48 100% 50%;
+    --accent-foreground: 0 0% 8%;
 
-    /* Accent colors */
-    --accent: 220 14% 96%;
-    --accent-foreground: 207 90% 54%;
+    /* Muted - Warm gray on paper */
+    --muted: 45 20% 92%;
+    --muted-foreground: 0 0% 40%;
 
-    /* Destructive - Red #F44336 */
-    --destructive: 4 90% 58%;
+    /* Destructive - Deep red */
+    --destructive: 0 72% 45%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Warning - Orange #FF9800 */
-    --warning: 36 100% 50%;
+    /* Warning - Orange */
+    --warning: 32 95% 52%;
     --warning-foreground: 0 0% 100%;
 
-    /* Border and input */
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 207 90% 54%;
+    /* Success - Green */
+    --success: 142 70% 42%;
+    --success-foreground: 0 0% 100%;
 
-    --radius: 0.5rem;
+    /* Borders */
+    --border: 0 0% 12%;
+    --input: 45 20% 88%;
+    --ring: 217 91% 50%;
 
-    /* Sidebar */
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 207 90% 54%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 14% 96%;
-    --sidebar-accent-foreground: 207 90% 54%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 207 90% 54%;
+    --radius: 0px;
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(207, 90%, 54%), hsl(207, 90%, 64%));
-    --gradient-secondary: linear-gradient(135deg, hsl(122, 39%, 49%), hsl(122, 39%, 59%));
-    --gradient-hero: linear-gradient(180deg, hsl(0, 0%, 100%), hsl(220, 14%, 96%));
+    /* Sidebar - Dark mode sidebar */
+    --sidebar-background: 0 0% 8%;
+    --sidebar-foreground: 45 30% 96%;
+    --sidebar-primary: 48 100% 50%;
+    --sidebar-primary-foreground: 0 0% 8%;
+    --sidebar-accent: 0 0% 15%;
+    --sidebar-accent-foreground: 48 100% 50%;
+    --sidebar-border: 0 0% 20%;
+    --sidebar-ring: 217 91% 50%;
+
+    /* Bauhaus Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(217, 91%, 50%), hsl(217, 91%, 60%));
+    --gradient-secondary: linear-gradient(135deg, hsl(4, 85%, 52%), hsl(4, 85%, 62%));
+    --gradient-accent: linear-gradient(135deg, hsl(48, 100%, 50%), hsl(48, 100%, 60%));
+    --gradient-geometric: linear-gradient(45deg, hsl(217, 91%, 50%) 0%, hsl(4, 85%, 52%) 50%, hsl(48, 100%, 50%) 100%);
     
-    /* Shadows */
-    --shadow-soft: 0 4px 20px -2px hsl(207, 90%, 54% / 0.1);
-    --shadow-medium: 0 8px 30px -4px hsl(207, 90%, 54% / 0.15);
-    --shadow-glow: 0 0 40px hsl(207, 90%, 54% / 0.3);
+    /* Swiss Design Shadows - Sharp and geometric */
+    --shadow-sharp: 4px 4px 0px hsl(0, 0%, 8%);
+    --shadow-soft: 8px 8px 0px hsl(0, 0%, 8% / 0.1);
+    --shadow-card: 6px 6px 0px hsl(0, 0%, 8% / 0.08);
+    --shadow-hover: 8px 8px 0px hsl(217, 91%, 50% / 0.2);
 
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Animation timing */
+    --transition-bauhaus: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .dark {
-    /* Background colors - Dark Mode (#121212, #1E1E1E) */
-    --background: 0 0% 7%;
-    --foreground: 0 0% 88%;
+    /* Dark Bauhaus - Inverted with neon accents */
+    --background: 0 0% 6%;
+    --foreground: 45 30% 92%;
 
-    --card: 0 0% 12%;
-    --card-foreground: 0 0% 88%;
+    --card: 0 0% 10%;
+    --card-foreground: 45 30% 92%;
 
-    --popover: 0 0% 12%;
-    --popover-foreground: 0 0% 88%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 45 30% 92%;
 
-    /* Primary color - Blue Neon #42A5F5 */
-    --primary: 207 89% 61%;
+    /* Primary - Neon Blue */
+    --primary: 217 95% 60%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary color - Green Neon #66BB6A */
-    --secondary: 123 38% 57%;
+    /* Secondary - Neon Red */
+    --secondary: 4 90% 58%;
     --secondary-foreground: 0 0% 100%;
 
-    /* Muted colors */
-    --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 62%;
+    /* Accent - Neon Yellow */
+    --accent: 48 100% 55%;
+    --accent-foreground: 0 0% 8%;
 
-    /* Accent colors */
-    --accent: 0 0% 12%;
-    --accent-foreground: 207 89% 61%;
+    /* Muted */
+    --muted: 0 0% 14%;
+    --muted-foreground: 45 20% 60%;
 
-    /* Destructive - Red Bright #EF5350 */
-    --destructive: 4 82% 63%;
+    /* Destructive */
+    --destructive: 0 75% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Warning - Orange Bright #FFA726 */
-    --warning: 36 100% 58%;
-    --warning-foreground: 0 0% 100%;
+    /* Warning */
+    --warning: 32 100% 55%;
+    --warning-foreground: 0 0% 8%;
 
-    --border: 0 0% 15%;
-    --input: 0 0% 15%;
-    --ring: 207 89% 61%;
+    /* Success */
+    --success: 142 75% 48%;
+    --success-foreground: 0 0% 100%;
+
+    --border: 0 0% 22%;
+    --input: 0 0% 18%;
+    --ring: 217 95% 60%;
 
     /* Sidebar */
-    --sidebar-background: 0 0% 10%;
-    --sidebar-foreground: 0 0% 88%;
-    --sidebar-primary: 207 89% 61%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 15%;
-    --sidebar-accent-foreground: 207 89% 61%;
-    --sidebar-border: 0 0% 15%;
-    --sidebar-ring: 207 89% 61%;
+    --sidebar-background: 0 0% 4%;
+    --sidebar-foreground: 45 30% 92%;
+    --sidebar-primary: 48 100% 55%;
+    --sidebar-primary-foreground: 0 0% 8%;
+    --sidebar-accent: 0 0% 12%;
+    --sidebar-accent-foreground: 48 100% 55%;
+    --sidebar-border: 0 0% 18%;
+    --sidebar-ring: 217 95% 60%;
 
-    /* Dark mode gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(207, 89%, 61%), hsl(207, 89%, 71%));
-    --gradient-secondary: linear-gradient(135deg, hsl(123, 38%, 57%), hsl(123, 38%, 67%));
-    --gradient-hero: linear-gradient(180deg, hsl(0, 0%, 7%), hsl(0, 0%, 12%));
-    
-    /* Dark mode shadows */
-    --shadow-soft: 0 4px 20px -2px hsl(207, 89%, 61% / 0.2);
-    --shadow-medium: 0 8px 30px -4px hsl(207, 89%, 61% / 0.25);
-    --shadow-glow: 0 0 40px hsl(207, 89%, 61% / 0.4);
+    /* Dark mode shadows - Glowing */
+    --shadow-sharp: 4px 4px 0px hsl(0, 0%, 0%);
+    --shadow-soft: 8px 8px 0px hsl(217, 95%, 60% / 0.15);
+    --shadow-card: 0 0 20px hsl(217, 95%, 60% / 0.1);
+    --shadow-hover: 0 0 30px hsl(217, 95%, 60% / 0.25);
   }
+}
+
+/* Paper texture overlay */
+.paper-texture {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  background-blend-mode: overlay;
+  opacity: 0.03;
 }
 
 @layer base {
@@ -139,27 +161,32 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground font-sans text-base;
+    @apply bg-background text-foreground font-sans antialiased;
+    background-image: 
+      radial-gradient(circle at 100% 0%, hsl(var(--primary) / 0.03) 0%, transparent 50%),
+      radial-gradient(circle at 0% 100%, hsl(var(--secondary) / 0.03) 0%, transparent 50%);
+    background-attachment: fixed;
   }
 
+  /* Bauhaus Typography - Bold and geometric */
   h1 {
-    @apply font-display text-[28px] font-bold leading-tight;
+    @apply font-display text-3xl md:text-4xl font-black tracking-tight leading-none uppercase;
   }
 
   h2 {
-    @apply font-display text-2xl font-semibold leading-tight;
+    @apply font-display text-2xl md:text-3xl font-bold tracking-tight leading-tight;
   }
 
   h3 {
-    @apply font-display text-xl font-semibold leading-tight;
+    @apply font-display text-xl md:text-2xl font-bold leading-tight;
   }
 
   h4 {
-    @apply font-display text-lg font-semibold leading-tight;
+    @apply font-display text-lg font-bold leading-tight;
   }
 
   h5, h6 {
-    @apply font-display text-base font-semibold leading-tight;
+    @apply font-display text-base font-bold leading-tight;
   }
 
   p {
@@ -171,36 +198,265 @@ All colors MUST be HSL.
   }
 }
 
+@layer components {
+  /* Bauhaus Card - Bento box style */
+  .bento-card {
+    @apply relative bg-card border-2 border-foreground/10 transition-all duration-200;
+    box-shadow: var(--shadow-card);
+  }
+
+  .bento-card:hover {
+    @apply border-primary/30;
+    box-shadow: var(--shadow-hover);
+    transform: translate(-2px, -2px);
+  }
+
+  /* Geometric accent blocks */
+  .geo-accent {
+    @apply absolute w-4 h-4;
+  }
+
+  .geo-accent-red {
+    @apply geo-accent bg-secondary;
+  }
+
+  .geo-accent-blue {
+    @apply geo-accent bg-primary;
+  }
+
+  .geo-accent-yellow {
+    @apply geo-accent bg-accent;
+  }
+
+  /* Swiss button style */
+  .btn-bauhaus {
+    @apply relative font-bold uppercase tracking-wide text-sm px-6 py-3 border-2 border-foreground transition-all duration-200;
+    box-shadow: var(--shadow-sharp);
+  }
+
+  .btn-bauhaus:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px hsl(var(--foreground));
+  }
+
+  .btn-bauhaus:active {
+    transform: translate(2px, 2px);
+    box-shadow: 0px 0px 0px hsl(var(--foreground));
+  }
+
+  /* Geometric dividers */
+  .geo-divider {
+    @apply flex items-center gap-2;
+  }
+
+  .geo-divider::before,
+  .geo-divider::after {
+    content: '';
+    @apply flex-1 h-0.5 bg-foreground/10;
+  }
+
+  /* Progress bar - Bauhaus style */
+  .progress-bauhaus {
+    @apply h-3 bg-muted border border-foreground/10;
+  }
+
+  .progress-bauhaus > div {
+    @apply h-full bg-primary transition-all duration-500;
+  }
+
+  /* Badge - Geometric */
+  .badge-bauhaus {
+    @apply inline-flex items-center px-3 py-1 text-xs font-bold uppercase tracking-wider border-2;
+  }
+
+  /* Sidebar nav item */
+  .nav-item-bauhaus {
+    @apply relative flex items-center gap-3 px-4 py-3 font-medium transition-all duration-200;
+  }
+
+  .nav-item-bauhaus::before {
+    content: '';
+    @apply absolute left-0 top-0 bottom-0 w-1 bg-transparent transition-all duration-200;
+  }
+
+  .nav-item-bauhaus:hover::before,
+  .nav-item-bauhaus.active::before {
+    @apply bg-accent;
+  }
+
+  .nav-item-bauhaus.active {
+    @apply bg-sidebar-accent text-sidebar-accent-foreground;
+  }
+
+  /* Stat card - Bento style */
+  .stat-bento {
+    @apply bento-card p-6 flex flex-col;
+  }
+
+  .stat-bento-icon {
+    @apply w-12 h-12 flex items-center justify-center mb-4;
+  }
+
+  /* Input - Swiss style */
+  .input-bauhaus {
+    @apply w-full px-4 py-3 bg-background border-2 border-foreground/20 font-medium transition-all duration-200;
+  }
+
+  .input-bauhaus:focus {
+    @apply border-primary outline-none;
+    box-shadow: 4px 4px 0px hsl(var(--primary) / 0.2);
+  }
+
+  /* Grid patterns */
+  .grid-bauhaus {
+    background-image: 
+      linear-gradient(hsl(var(--foreground) / 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--foreground) / 0.03) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+}
+
 @layer utilities {
-  .animate-in {
-    animation-fill-mode: backwards;
+  /* Micro-animations for task completion */
+  .task-complete {
+    animation: taskComplete 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  .fade-in {
-    animation-name: fadeIn;
+  @keyframes taskComplete {
+    0% {
+      transform: scale(1);
+    }
+    25% {
+      transform: scale(0.95);
+    }
+    50% {
+      transform: scale(1.05);
+      background-color: hsl(var(--success) / 0.2);
+    }
+    100% {
+      transform: scale(1);
+    }
   }
 
-  .slide-in-from-bottom-4 {
-    animation-name: slideInFromBottom;
+  /* Fade animations */
+  .animate-fade-in {
+    animation: fadeIn 0.4s ease-out;
+  }
+
+  .animate-fade-out {
+    animation: fadeOut 0.3s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .animate-slide-down {
+    animation: slideDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .animate-bounce-subtle {
+    animation: bounceSubtle 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 
-  @keyframes slideInFromBottom {
+  @keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+
+  @keyframes slideUp {
     from {
       opacity: 0;
-      transform: translateY(1rem);
+      transform: translateY(20px);
     }
     to {
       opacity: 1;
       transform: translateY(0);
     }
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes bounceSubtle {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
+
+  /* Geometric hover effects */
+  .hover-geo {
+    @apply transition-all duration-200;
+  }
+
+  .hover-geo:hover {
+    transform: translate(-2px, -2px);
+  }
+
+  /* Accordion animations */
+  .accordion-down {
+    animation: accordion-down 0.2s ease-out;
+  }
+
+  .accordion-up {
+    animation: accordion-up 0.2s ease-out;
+  }
+
+  @keyframes accordion-down {
+    from { height: 0; opacity: 0; }
+    to { height: var(--radix-accordion-content-height); opacity: 1; }
+  }
+
+  @keyframes accordion-up {
+    from { height: var(--radix-accordion-content-height); opacity: 1; }
+    to { height: 0; opacity: 0; }
+  }
+
+  /* Stagger animation delays */
+  .stagger-1 { animation-delay: 0.1s; }
+  .stagger-2 { animation-delay: 0.2s; }
+  .stagger-3 { animation-delay: 0.3s; }
+  .stagger-4 { animation-delay: 0.4s; }
+  .stagger-5 { animation-delay: 0.5s; }
+
+  /* Underline link animation */
+  .link-underline {
+    @apply relative inline-block;
+  }
+
+  .link-underline::after {
+    content: '';
+    @apply absolute bottom-0 left-0 w-full h-0.5 bg-primary scale-x-0 origin-right transition-transform duration-300;
+  }
+
+  .link-underline:hover::after {
+    @apply scale-x-100 origin-left;
   }
 }

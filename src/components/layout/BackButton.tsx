@@ -12,11 +12,9 @@ export const BackButton = ({ fallbackPath = '/dashboard', label, className = '' 
   const navigate = useNavigate();
 
   const handleBack = () => {
-    // Check if there's history to go back to
     if (window.history.length > 2) {
       navigate(-1);
     } else {
-      // If no history, go to fallback path
       navigate(fallbackPath);
     }
   };
@@ -26,7 +24,8 @@ export const BackButton = ({ fallbackPath = '/dashboard', label, className = '' 
       variant="ghost" 
       size="sm" 
       onClick={handleBack}
-      className={`gap-2 ${className}`}
+      className={`gap-2 transition-all duration-200 hover:-translate-x-1 ${className}`}
+      style={{ boxShadow: '3px 3px 0px hsl(var(--foreground))' }}
     >
       <ArrowLeft className="w-4 h-4" />
       {label || 'Retour'}
