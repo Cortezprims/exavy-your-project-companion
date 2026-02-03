@@ -55,11 +55,11 @@
     --success-foreground: 0 0% 100%;
 
     /* Borders */
-    --border: 0 0% 12%;
+    --border: 0 0% 85%;
     --input: 45 20% 88%;
     --ring: 217 91% 50%;
 
-    --radius: 0px;
+    --radius: 0.75rem;
 
     /* Sidebar - Dark mode sidebar */
     --sidebar-background: 0 0% 8%;
@@ -77,11 +77,11 @@
     --gradient-accent: linear-gradient(135deg, hsl(48, 100%, 50%), hsl(48, 100%, 60%));
     --gradient-geometric: linear-gradient(45deg, hsl(217, 91%, 50%) 0%, hsl(4, 85%, 52%) 50%, hsl(48, 100%, 50%) 100%);
     
-    /* Swiss Design Shadows - Sharp and geometric */
-    --shadow-sharp: 4px 4px 0px hsl(0, 0%, 8%);
-    --shadow-soft: 8px 8px 0px hsl(0, 0%, 8% / 0.1);
-    --shadow-card: 6px 6px 0px hsl(0, 0%, 8% / 0.08);
-    --shadow-hover: 8px 8px 0px hsl(217, 91%, 50% / 0.2);
+    /* Hybrid Design Shadows - Softer with slight offset */
+    --shadow-sharp: 0 4px 12px hsl(0, 0%, 0% / 0.08);
+    --shadow-soft: 0 8px 24px hsl(0, 0%, 0% / 0.06);
+    --shadow-card: 0 4px 16px hsl(0, 0%, 0% / 0.06);
+    --shadow-hover: 0 12px 32px hsl(217, 91%, 50% / 0.15);
 
     /* Animation timing */
     --transition-bauhaus: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -126,9 +126,11 @@
     --success: 142 75% 48%;
     --success-foreground: 0 0% 100%;
 
-    --border: 0 0% 22%;
+    --border: 0 0% 20%;
     --input: 0 0% 18%;
     --ring: 217 95% 60%;
+    
+    --radius: 0.75rem;
 
     /* Sidebar */
     --sidebar-background: 0 0% 4%;
@@ -140,11 +142,11 @@
     --sidebar-border: 0 0% 18%;
     --sidebar-ring: 217 95% 60%;
 
-    /* Dark mode shadows - Glowing */
-    --shadow-sharp: 4px 4px 0px hsl(0, 0%, 0%);
-    --shadow-soft: 8px 8px 0px hsl(217, 95%, 60% / 0.15);
-    --shadow-card: 0 0 20px hsl(217, 95%, 60% / 0.1);
-    --shadow-hover: 0 0 30px hsl(217, 95%, 60% / 0.25);
+    /* Dark mode shadows - Soft glow */
+    --shadow-sharp: 0 4px 12px hsl(0, 0%, 0% / 0.3);
+    --shadow-soft: 0 8px 24px hsl(217, 95%, 60% / 0.1);
+    --shadow-card: 0 4px 20px hsl(0, 0%, 0% / 0.25);
+    --shadow-hover: 0 12px 32px hsl(217, 95%, 60% / 0.2);
   }
 }
 
@@ -199,16 +201,16 @@
 }
 
 @layer components {
-  /* Bauhaus Card - Bento box style */
+  /* Hybrid Card - Bento box style with soft edges */
   .bento-card {
-    @apply relative bg-card border-2 border-foreground/10 transition-all duration-200;
+    @apply relative bg-card border border-border/50 rounded-xl transition-all duration-300;
     box-shadow: var(--shadow-card);
   }
 
   .bento-card:hover {
-    @apply border-primary/30;
+    @apply border-primary/20;
     box-shadow: var(--shadow-hover);
-    transform: translate(-2px, -2px);
+    transform: translateY(-2px);
   }
 
   /* Geometric accent blocks */
@@ -228,20 +230,20 @@
     @apply geo-accent bg-accent;
   }
 
-  /* Swiss button style */
+  /* Hybrid button style - Modern with geometric accents */
   .btn-bauhaus {
-    @apply relative font-bold uppercase tracking-wide text-sm px-6 py-3 border-2 border-foreground transition-all duration-200;
-    box-shadow: var(--shadow-sharp);
+    @apply relative font-semibold tracking-wide text-sm px-6 py-3 rounded-lg border border-border/50 transition-all duration-300;
+    box-shadow: var(--shadow-soft);
   }
 
   .btn-bauhaus:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 6px 6px 0px hsl(var(--foreground));
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
   }
 
   .btn-bauhaus:active {
-    transform: translate(2px, 2px);
-    box-shadow: 0px 0px 0px hsl(var(--foreground));
+    transform: translateY(0);
+    box-shadow: var(--shadow-sharp);
   }
 
   /* Geometric dividers */
@@ -255,18 +257,18 @@
     @apply flex-1 h-0.5 bg-foreground/10;
   }
 
-  /* Progress bar - Bauhaus style */
+  /* Progress bar - Hybrid style with rounded edges */
   .progress-bauhaus {
-    @apply h-3 bg-muted border border-foreground/10;
+    @apply h-3 bg-muted rounded-full overflow-hidden;
   }
 
   .progress-bauhaus > div {
-    @apply h-full bg-primary transition-all duration-500;
+    @apply h-full bg-gradient-to-r from-primary to-primary/80 rounded-full transition-all duration-500;
   }
 
-  /* Badge - Geometric */
+  /* Badge - Hybrid with soft corners */
   .badge-bauhaus {
-    @apply inline-flex items-center px-3 py-1 text-xs font-bold uppercase tracking-wider border-2;
+    @apply inline-flex items-center px-3 py-1 text-xs font-semibold tracking-wide rounded-full border;
   }
 
   /* Sidebar nav item */
@@ -297,14 +299,14 @@
     @apply w-12 h-12 flex items-center justify-center mb-4;
   }
 
-  /* Input - Swiss style */
+  /* Input - Hybrid style with soft edges */
   .input-bauhaus {
-    @apply w-full px-4 py-3 bg-background border-2 border-foreground/20 font-medium transition-all duration-200;
+    @apply w-full px-4 py-3 bg-background border border-border rounded-lg font-medium transition-all duration-300;
   }
 
   .input-bauhaus:focus {
-    @apply border-primary outline-none;
-    box-shadow: 4px 4px 0px hsl(var(--primary) / 0.2);
+    @apply border-primary outline-none ring-2 ring-primary/20;
+    box-shadow: var(--shadow-soft);
   }
 
   /* Grid patterns */
