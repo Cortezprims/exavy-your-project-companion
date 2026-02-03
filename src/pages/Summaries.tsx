@@ -22,11 +22,16 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 
+interface KeyConcept {
+  term?: string;
+  definition?: string;
+}
+
 interface SummaryData {
   id: string;
   short_summary: string | null;
   long_summary: string | null;
-  key_concepts: string[] | null;
+  key_concepts: (string | KeyConcept)[] | null;
   document_id: string;
   created_at: string;
 }
@@ -216,12 +221,21 @@ const Summaries = () => {
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-3">
-                    {activeSummary.key_concepts.map((point, i) => (
-                      <li key={i} className="flex items-start gap-3">
-                        <Badge variant="secondary" className="mt-0.5">{i + 1}</Badge>
-                        <span>{point}</span>
-                      </li>
-                    ))}
+                    {activeSummary.key_concepts.map((point, i) => {
+                      // Handle both string and object formats
+                      const displayText = typeof point === 'string' 
+                        ? point 
+                        : (point as { term?: string; definition?: string })?.term 
+                          ? `${(point as { term: string; definition?: string }).term}: ${(point as { term: string; definition?: string }).definition || ''}`
+                          : JSON.stringify(point);
+                      
+                      return (
+                        <li key={i} className="flex items-start gap-3">
+                          <Badge variant="secondary" className="mt-0.5">{i + 1}</Badge>
+                          <span>{displayText}</span>
+                        </li>
+                      );
+                    })}
                   </ul>
                 </CardContent>
               </Card>
