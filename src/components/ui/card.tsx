@@ -3,13 +3,13 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("bento-card bg-card text-card-foreground relative overflow-hidden", className)} {...props} />
+  <div ref={ref} className={cn("bento-card bg-card text-card-foreground relative overflow-hidden rounded-xl", className)} {...props} />
 ));
 Card.displayName = "Card";
 
 const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn("flex flex-col space-y-1.5 p-6 border-b-2 border-border", className)} {...props} />
+    <div ref={ref} className={cn("flex flex-col space-y-1.5 p-6 border-b border-border/30", className)} {...props} />
   ),
 );
 CardHeader.displayName = "CardHeader";

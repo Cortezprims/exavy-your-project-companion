@@ -84,15 +84,15 @@ const Summaries = () => {
         .select('*')
         .eq('document_id', documentId)
         .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .limit(1);
 
       if (error) throw error;
 
-      if (data) {
+      if (data && data.length > 0) {
+        const summaryData = data[0];
         setActiveSummary({
-          ...data,
-          key_concepts: Array.isArray(data.key_concepts) ? data.key_concepts as string[] : []
+          ...summaryData,
+          key_concepts: Array.isArray(summaryData.key_concepts) ? summaryData.key_concepts as string[] : []
         });
       } else {
         // Generate summary if none exists

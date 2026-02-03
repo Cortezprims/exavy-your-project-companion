@@ -16,12 +16,14 @@ import {
   ArrowLeft,
   FileText,
   Eye,
-  EyeOff
+  EyeOff,
+  Sparkles
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { toPng } from 'html-to-image';
+import { ModernSlide } from '@/components/presentations/ModernSlide';
 
 interface Slide {
   id: number;
@@ -269,7 +271,7 @@ export default function Presentations() {
   if (isFullscreen) {
     return (
       <div 
-        className="fixed inset-0 bg-black z-50 flex items-center justify-center"
+        className="fixed inset-0 bg-background z-50 flex items-center justify-center"
         onClick={(e) => {
           if (e.clientX > window.innerWidth / 2) {
             nextSlide();
@@ -280,43 +282,50 @@ export default function Presentations() {
       >
         <div 
           ref={slideRef}
-          className="w-full max-w-6xl aspect-[16/9] p-12 flex flex-col justify-center"
-          style={getSlideStyle(currentSlide)}
+          className="w-full max-w-6xl aspect-[16/9] rounded-xl overflow-hidden shadow-2xl"
         >
-          {currentSlide?.type === 'title' ? (
-            <div className="text-center">
-              <h1 className="text-6xl font-bold mb-6">{currentSlide.title}</h1>
-              {currentSlide.subtitle && (
-                <p className="text-2xl opacity-75">{currentSlide.subtitle}</p>
-              )}
-            </div>
-          ) : (
-            <>
-              <h2 className="text-4xl font-bold mb-8">{currentSlide?.title}</h2>
-              {currentSlide?.content && (
-                <ul className="space-y-4 text-2xl">
-                  {currentSlide.content.map((item, index) => (
-                    <li key={index} className="flex items-start gap-4">
-                      <span className="text-primary">•</span>
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </>
-          )}
+          <ModernSlide
+            slide={currentSlide}
+            slideIndex={currentSlideIndex}
+            totalSlides={currentPresentation.slides.length}
+            designSettings={currentPresentation.design_settings}
+            isFullscreen={true}
+          />
         </div>
         
-        {/* Slide counter */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/50 text-lg">
-          {currentSlideIndex + 1} / {currentPresentation.slides.length}
+        {/* Navigation arrows */}
+        <div className="absolute left-4 right-4 top-1/2 -translate-y-1/2 flex justify-between pointer-events-none">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="w-12 h-12 rounded-full bg-background/20 backdrop-blur-sm text-foreground hover:bg-background/40 pointer-events-auto"
+            onClick={(e) => {
+              e.stopPropagation();
+              prevSlide();
+            }}
+            disabled={currentSlideIndex === 0}
+          >
+            <ChevronLeft className="h-6 w-6" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="w-12 h-12 rounded-full bg-background/20 backdrop-blur-sm text-foreground hover:bg-background/40 pointer-events-auto"
+            onClick={(e) => {
+              e.stopPropagation();
+              nextSlide();
+            }}
+            disabled={currentSlideIndex === currentPresentation.slides.length - 1}
+          >
+            <ChevronRight className="h-6 w-6" />
+          </Button>
         </div>
         
         {/* Exit button */}
         <Button
           variant="ghost"
           size="icon"
-          className="absolute top-4 right-4 text-white/70 hover:text-white"
+          className="absolute top-4 right-4 bg-background/20 backdrop-blur-sm hover:bg-background/40"
           onClick={(e) => {
             e.stopPropagation();
             setIsFullscreen(false);
@@ -366,20 +375,24 @@ export default function Presentations() {
             </CardHeader>
             <CardContent className="p-2">
               <ScrollArea className="h-[500px]">
-                <div className="space-y-2">
+                <div className="space-y-2 p-1">
                   {currentPresentation.slides.map((slide, index) => (
                     <div
                       key={slide.id}
-                      className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                      className={`p-3 rounded-lg cursor-pointer transition-all duration-200 ${
                         index === currentSlideIndex 
-                          ? 'bg-primary text-primary-foreground' 
-                          : 'bg-muted hover:bg-muted/80'
+                          ? 'bg-primary text-primary-foreground shadow-md scale-[1.02]' 
+                          : 'bg-muted hover:bg-muted/80 hover:scale-[1.01]'
                       }`}
                       onClick={() => setCurrentSlideIndex(index)}
                     >
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-medium opacity-75">{index + 1}</span>
-                        <span className="text-sm line-clamp-1">{slide.title}</span>
+                      <div className="flex items-center gap-3">
+                        <span className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
+                          index === currentSlideIndex ? 'bg-primary-foreground/20' : 'bg-primary/10 text-primary'
+                        }`}>
+                          {index + 1}
+                        </span>
+                        <span className="text-sm font-medium line-clamp-1">{slide.title}</span>
                       </div>
                     </div>
                   ))}
@@ -390,46 +403,18 @@ export default function Presentations() {
 
           {/* Main slide view */}
           <div className="lg:col-span-3 space-y-4">
-            <Card className="overflow-hidden">
+            <Card className="overflow-hidden rounded-xl shadow-lg">
               <div 
                 ref={slideRef}
-                className="aspect-[16/9] p-8 flex flex-col justify-center"
-                style={getSlideStyle(currentSlide)}
+                className="aspect-[16/9]"
               >
-                {currentSlide?.type === 'title' ? (
-                  <div className="text-center">
-                    <h1 className="text-4xl md:text-5xl font-bold mb-4">{currentSlide.title}</h1>
-                    {currentSlide.subtitle && (
-                      <p className="text-xl opacity-75">{currentSlide.subtitle}</p>
-                    )}
-                  </div>
-                ) : currentSlide?.type === 'section' ? (
-                  <div className="text-center">
-                    <h2 className="text-3xl md:text-4xl font-bold">{currentSlide?.title}</h2>
-                  </div>
-                ) : (
-                  <>
-                    <h2 className="text-2xl md:text-3xl font-bold mb-6">{currentSlide?.title}</h2>
-                    {currentSlide?.content && (
-                      <ul className="space-y-3 text-lg">
-                        {currentSlide.content.map((item, index) => (
-                          <li key={index} className="flex items-start gap-3">
-                            <span style={{ color: currentPresentation.design_settings?.primaryColor }}>
-                              •
-                            </span>
-                            <span>{item}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                    {currentSlide?.image_suggestion && (
-                      <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg text-sm text-muted-foreground">
-                        <FileText className="h-4 w-4 inline mr-2" />
-                        Image suggérée : {currentSlide.image_suggestion}
-                      </div>
-                    )}
-                  </>
-                )}
+                <ModernSlide
+                  slide={currentSlide}
+                  slideIndex={currentSlideIndex}
+                  totalSlides={currentPresentation.slides.length}
+                  designSettings={currentPresentation.design_settings}
+                  isFullscreen={false}
+                />
               </div>
             </Card>
 
