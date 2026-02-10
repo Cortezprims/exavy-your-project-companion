@@ -33,8 +33,9 @@ const Index = () => {
   const plans = [
     {
       name: "Freemium",
-      price: "0",
-      currency: "FCFA",
+      price: "0 FCFA",
+      priceUSD: "",
+      currency: "",
       features: [
         "3 documents par mois",
         "10 quiz par mois",
@@ -47,9 +48,9 @@ const Index = () => {
     },
     {
       name: "Premium",
-      price: "4 USD",
-      priceLocal: "2 600 FCFA/mois",
-      currency: "",
+      price: "2 600 FCFA",
+      priceUSD: "≈ 4 USD/mois",
+      currency: "/mois",
       features: [
         "Documents illimités",
         "Quiz et flashcards illimités",
@@ -65,9 +66,9 @@ const Index = () => {
     },
     {
       name: "Premium Annuel",
-      price: "40 USD",
-      priceLocal: "26 000 FCFA/an",
-      currency: "",
+      price: "26 000 FCFA",
+      priceUSD: "≈ 40 USD/an",
+      currency: "/an",
       badge: "Économisez 17%",
       features: [
         "Tous les avantages Premium",
@@ -245,9 +246,8 @@ const Index = () => {
                     <span className="font-black text-5xl">
                       {plan.price}
                     </span>
-                    <span className="text-muted-foreground ml-2">{plan.currency}</span>
-                    {plan.priceLocal && (
-                      <p className="text-sm text-muted-foreground mt-1">{plan.priceLocal}</p>
+                    {plan.priceUSD && (
+                      <p className="text-sm text-muted-foreground mt-1">{plan.priceUSD}</p>
                     )}
                   </div>
                   

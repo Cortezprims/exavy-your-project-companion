@@ -13,7 +13,7 @@ const plans = [
   {
     id: "free",
     name: "Freemium",
-    price: "Gratuit",
+    price: "0 FCFA",
     priceUSD: 0,
     priceXAF: 0,
     period: "",
@@ -35,10 +35,10 @@ const plans = [
   {
     id: "monthly",
     name: "Premium Mensuel",
-    price: "4 USD",
+    price: "2 600 FCFA",
     priceUSD: 4,
     priceXAF: 2600,
-    priceLocal: "2 600 FCFA",
+    priceSmall: "≈ 4 USD/mois",
     period: "/mois",
     description: "Accès complet",
     features: [
@@ -57,10 +57,10 @@ const plans = [
   {
     id: "yearly",
     name: "Premium Annuel",
-    price: "40 USD",
+    price: "26 000 FCFA",
     priceUSD: 40,
     priceXAF: 26000,
-    priceLocal: "26 000 FCFA",
+    priceSmall: "≈ 40 USD/an",
     period: "/an",
     description: "Économisez 17%",
     features: [
@@ -221,8 +221,8 @@ const Subscription = () => {
                 <div className="mt-4">
                   <span className="text-3xl font-bold text-foreground">{plan.price}</span>
                   <span className="text-muted-foreground">{plan.period}</span>
-                  {plan.priceLocal && (
-                    <p className="text-sm text-muted-foreground mt-1">{plan.priceLocal}</p>
+                  {plan.priceSmall && (
+                    <p className="text-sm text-muted-foreground mt-1">{plan.priceSmall}</p>
                   )}
                 </div>
               </CardHeader>
