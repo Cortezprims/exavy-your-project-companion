@@ -27,6 +27,7 @@ import Presentations from "./pages/Presentations";
 import Projects from "./pages/Projects";
 import Admin from "./pages/Admin";
 import Help from "./pages/Help";
+import Contact from "./pages/Contact";
 import Install from "./pages/Install";
 
 const queryClient = new QueryClient();
@@ -208,6 +209,11 @@ const App = () => (
             <Route path="/help" element={
               <ProtectedRoute>
                 <Help />
+              </ProtectedRoute>
+            } />
+            <Route path="/contact" element={
+              <ProtectedRoute>
+                <Contact />
               </ProtectedRoute>
             } />
             <Route path="/install" element={<Install />} />
