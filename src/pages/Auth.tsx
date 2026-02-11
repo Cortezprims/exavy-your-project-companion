@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
 import { Sparkles, Mail, Lock, User, Loader2 } from 'lucide-react';
+import exavyLogo from '@/assets/exavy-logo.jpg';
 import { toast } from 'sonner';
 import { TermsDialog } from '@/components/auth/TermsDialog';
 import { OTPVerification } from '@/components/auth/OTPVerification';
@@ -152,6 +153,7 @@ const Auth = () => {
               <Sparkles className="w-7 h-7 text-primary-foreground" />
             </div>
           </div>
+          <img src={exavyLogo} alt="EXAVY" className="w-16 h-16 rounded-xl object-cover mx-auto mb-2" />
           <CardTitle className="text-2xl font-bold">EXAVY</CardTitle>
           <CardDescription>Votre assistant d'apprentissage intelligent</CardDescription>
         </CardHeader>

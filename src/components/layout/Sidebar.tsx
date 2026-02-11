@@ -5,6 +5,7 @@ import { useAdmin } from '@/hooks/useAdmin';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { TicketNotification } from '@/components/admin/TicketNotification';
+import exavyLogo from '@/assets/exavy-logo.jpg';
 import { 
   LayoutDashboard, 
   FileText, 
@@ -27,7 +28,8 @@ import {
   Languages,
   GraduationCap,
   ClipboardList,
-  Presentation
+  Presentation,
+  Phone
 } from 'lucide-react';
 
 const menuItems = [
@@ -51,6 +53,7 @@ const bottomMenuItems = [
   { icon: User, label: 'Profil', path: '/profile' },
   { icon: CreditCard, label: 'Abonnement', path: '/subscription' },
   { icon: HelpCircle, label: 'Aide', path: '/help' },
+  { icon: Phone, label: 'Contact', path: '/contact' },
   { icon: Settings, label: 'Paramètres', path: '/settings' },
 ];
 
@@ -124,15 +127,10 @@ export const Sidebar = () => {
         {/* Logo Section */}
         <div className="p-6 border-b border-sidebar-border">
           <div className="flex items-center gap-3">
-            <div className="relative">
-              <div className="w-10 h-10 bg-primary flex items-center justify-center">
-                <span className="text-xl font-black text-primary-foreground">E</span>
-              </div>
-              <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-accent" />
-            </div>
+            <img src={exavyLogo} alt="EXAVY" className="w-10 h-10 rounded-lg object-cover" />
             <div>
               <h2 className="text-lg font-black tracking-tight">EXAVY</h2>
-              <p className="text-xs text-sidebar-foreground/60 uppercase tracking-wider">Productivité IA</p>
+              <p className="text-xs text-sidebar-foreground/60 uppercase tracking-wider">AI Learning Assistant</p>
             </div>
           </div>
           
