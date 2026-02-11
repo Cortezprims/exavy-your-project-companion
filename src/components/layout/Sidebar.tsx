@@ -125,7 +125,7 @@ export const Sidebar = () => {
         )}
       >
         {/* Logo Section */}
-        <div className="p-6 border-b border-sidebar-border">
+        <div className="p-6 pt-16 md:pt-6 border-b border-sidebar-border">
           <div className="flex items-center gap-3">
             <img src={exavyLogo} alt="EXAVY" className="w-10 h-10 rounded-lg object-cover" />
             <div>
