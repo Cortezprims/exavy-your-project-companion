@@ -20,7 +20,7 @@ export const MainLayout = ({ children, showBackButton = true }: MainLayoutProps)
       <Sidebar />
       <main className="md:ml-64 min-h-screen relative">
         {shouldShowBackButton && (
-          <div className="fixed top-4 left-20 md:left-[17rem] z-40">
+          <div className="sticky top-0 z-30 p-4 flex justify-start">
             <BackButton className="bg-background border-2 border-foreground font-bold uppercase text-xs tracking-wider" />
           </div>
         )}
