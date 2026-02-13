@@ -6,6 +6,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Simple email validation
+function isValidEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && email.length <= 254;
+}
+
 serve(async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -14,9 +19,16 @@ serve(async (req: Request): Promise<Response> => {
   try {
     const { email } = await req.json();
 
-    if (!email) {
+    if (!email || typeof email !== "string") {
       return new Response(
         JSON.stringify({ error: "Email requis" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!isValidEmail(email)) {
+      return new Response(
+        JSON.stringify({ error: "Format d'email invalide" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -27,12 +39,36 @@ serve(async (req: Request): Promise<Response> => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Generate 6-digit OTP code
-    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    // Rate limiting: check how many OTPs were sent to this email in the last 5 minutes
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+    const { data: recentOtps, error: rateError } = await supabase
+      .from("otp_codes")
+      .select("id")
+      .eq("email", email)
+      .gte("created_at", fiveMinutesAgo);
 
-    // Delete any existing OTP for this email
+    if (!rateError && recentOtps && recentOtps.length >= 3) {
+      return new Response(
+        JSON.stringify({ error: "Trop de demandes. Veuillez réessayer dans quelques minutes." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Cleanup: delete expired OTP codes for this email
+    await supabase
+      .from("otp_codes")
+      .delete()
+      .eq("email", email)
+      .lt("expires_at", new Date().toISOString());
+
+    // Delete any existing non-expired OTP for this email (only allow one active OTP)
     await supabase.from("otp_codes").delete().eq("email", email);
+
+    // Generate 6-digit OTP code using crypto for better randomness
+    const array = new Uint32Array(1);
+    crypto.getRandomValues(array);
+    const otpCode = (100000 + (array[0] % 900000)).toString();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
     // Insert new OTP
     const { error: insertError } = await supabase.from("otp_codes").insert({
@@ -94,7 +130,7 @@ serve(async (req: Request): Promise<Response> => {
         console.error("Email send error:", await emailResponse.text());
       }
     } else {
-      console.log("RESEND_API_KEY not configured, OTP:", otpCode);
+      console.log("RESEND_API_KEY not configured, OTP code generated");
     }
 
     return new Response(
@@ -104,7 +140,7 @@ serve(async (req: Request): Promise<Response> => {
   } catch (error: any) {
     console.error("Error in send-otp:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: "Impossible de traiter la demande" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
