@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -21,7 +21,6 @@ serve(async (req: Request): Promise<Response> => {
       );
     }
 
-    // Validate code format (must be exactly 6 digits)
     if (!/^\d{6}$/.test(code)) {
       return new Response(
         JSON.stringify({ error: "Format de code invalide", valid: false }),
@@ -34,24 +33,7 @@ serve(async (req: Request): Promise<Response> => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Rate limiting: max 5 verification attempts per email in 10 minutes
-    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
-    const { data: recentAttempts } = await supabase
-      .from("otp_codes")
-      .select("id, created_at")
-      .eq("email", email)
-      .gte("created_at", tenMinutesAgo);
-
-    // If there are many records it could indicate brute-force attempts
-    // We count total codes generated as a proxy for attempts
-    if (recentAttempts && recentAttempts.length > 5) {
-      return new Response(
-        JSON.stringify({ error: "Trop de tentatives. Veuillez réessayer plus tard.", valid: false }),
-        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Cleanup expired codes first
+    // Cleanup expired codes
     await supabase
       .from("otp_codes")
       .delete()
@@ -73,9 +55,7 @@ serve(async (req: Request): Promise<Response> => {
       );
     }
 
-    // Check expiration
     if (new Date(otpRecord.expires_at) < new Date()) {
-      // Delete expired code
       await supabase.from("otp_codes").delete().eq("id", otpRecord.id);
       return new Response(
         JSON.stringify({ error: "Code expiré", valid: false }),
@@ -83,7 +63,7 @@ serve(async (req: Request): Promise<Response> => {
       );
     }
 
-    // Mark as verified then delete the code (one-time use)
+    // Delete the code after successful verification (one-time use)
     await supabase.from("otp_codes").delete().eq("id", otpRecord.id);
 
     return new Response(
