@@ -14,9 +14,17 @@ serve(async (req: Request): Promise<Response> => {
   try {
     const { email, code } = await req.json();
 
-    if (!email || !code) {
+    if (!email || !code || typeof email !== "string" || typeof code !== "string") {
       return new Response(
-        JSON.stringify({ error: "Email et code requis" }),
+        JSON.stringify({ error: "Email et code requis", valid: false }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate code format (must be exactly 6 digits)
+    if (!/^\d{6}$/.test(code)) {
+      return new Response(
+        JSON.stringify({ error: "Format de code invalide", valid: false }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -25,6 +33,29 @@ serve(async (req: Request): Promise<Response> => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Rate limiting: max 5 verification attempts per email in 10 minutes
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+    const { data: recentAttempts } = await supabase
+      .from("otp_codes")
+      .select("id, created_at")
+      .eq("email", email)
+      .gte("created_at", tenMinutesAgo);
+
+    // If there are many records it could indicate brute-force attempts
+    // We count total codes generated as a proxy for attempts
+    if (recentAttempts && recentAttempts.length > 5) {
+      return new Response(
+        JSON.stringify({ error: "Trop de tentatives. Veuillez réessayer plus tard.", valid: false }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Cleanup expired codes first
+    await supabase
+      .from("otp_codes")
+      .delete()
+      .lt("expires_at", new Date().toISOString());
 
     // Find the OTP code
     const { data: otpRecord, error: fetchError } = await supabase
@@ -44,17 +75,16 @@ serve(async (req: Request): Promise<Response> => {
 
     // Check expiration
     if (new Date(otpRecord.expires_at) < new Date()) {
+      // Delete expired code
+      await supabase.from("otp_codes").delete().eq("id", otpRecord.id);
       return new Response(
         JSON.stringify({ error: "Code expiré", valid: false }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Mark as verified
-    await supabase
-      .from("otp_codes")
-      .update({ verified: true })
-      .eq("id", otpRecord.id);
+    // Mark as verified then delete the code (one-time use)
+    await supabase.from("otp_codes").delete().eq("id", otpRecord.id);
 
     return new Response(
       JSON.stringify({ success: true, valid: true }),
@@ -63,7 +93,7 @@ serve(async (req: Request): Promise<Response> => {
   } catch (error: any) {
     console.error("Error in verify-otp:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: "Impossible de traiter la demande", valid: false }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
