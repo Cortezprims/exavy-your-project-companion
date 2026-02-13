@@ -85,26 +85,10 @@ const Auth = () => {
       return;
     }
 
-    // First verify credentials are valid
+    // Send OTP first without signing in (to avoid auth state redirect)
+    setSendingOTP(true);
     setLoading(true);
     try {
-      const { error } = await signIn(loginEmail, loginPassword);
-      if (error) {
-        if (error.message.includes('Invalid login credentials')) {
-          toast.error('Email ou mot de passe incorrect');
-        } else if (error.message.includes('Email not confirmed')) {
-          toast.error('Veuillez confirmer votre email');
-        } else {
-          toast.error(error.message);
-        }
-        return;
-      }
-      
-      // Credentials valid - sign out immediately and require OTP
-      await supabase.auth.signOut();
-      
-      // Send OTP
-      setSendingOTP(true);
       const { error: otpError } = await supabase.functions.invoke('send-otp', {
         body: { email: loginEmail },
       });
