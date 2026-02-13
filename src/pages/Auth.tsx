@@ -73,6 +73,10 @@ const Auth = () => {
     }
   };
 
+  // Store login credentials for after OTP verification
+  const [pendingLogin, setPendingLogin] = useState<{ email: string; password: string } | null>(null);
+  const [loginOTPMode, setLoginOTPMode] = useState(false);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -81,6 +85,7 @@ const Auth = () => {
       return;
     }
 
+    // First verify credentials are valid
     setLoading(true);
     try {
       const { error } = await signIn(loginEmail, loginPassword);
@@ -94,13 +99,55 @@ const Auth = () => {
         }
         return;
       }
-      toast.success('Connexion réussie !');
-      navigate('/dashboard');
+      
+      // Credentials valid - sign out immediately and require OTP
+      await supabase.auth.signOut();
+      
+      // Send OTP
+      setSendingOTP(true);
+      const { error: otpError } = await supabase.functions.invoke('send-otp', {
+        body: { email: loginEmail },
+      });
+
+      if (otpError) {
+        toast.error("Erreur lors de l'envoi du code de vérification");
+        return;
+      }
+
+      setPendingLogin({ email: loginEmail, password: loginPassword });
+      setOtpEmail(loginEmail);
+      setLoginOTPMode(true);
+      setShowOTPVerification(true);
+      toast.success('Code de vérification envoyé par email !');
     } catch (error: any) {
       console.error('Login error:', error);
       toast.error('Erreur de connexion');
     } finally {
       setLoading(false);
+      setSendingOTP(false);
+    }
+  };
+
+  const handleLoginOTPVerified = async () => {
+    if (!pendingLogin) return;
+    
+    setShowOTPVerification(false);
+    setLoginOTPMode(false);
+    setLoading(true);
+    
+    try {
+      const { error } = await signIn(pendingLogin.email, pendingLogin.password);
+      if (error) {
+        toast.error('Erreur de connexion après vérification');
+        return;
+      }
+      toast.success('Connexion réussie !');
+      navigate('/dashboard');
+    } catch (error) {
+      toast.error('Erreur de connexion');
+    } finally {
+      setLoading(false);
+      setPendingLogin(null);
     }
   };
 
@@ -181,6 +228,8 @@ const Auth = () => {
   const handleCancelOTP = () => {
     setShowOTPVerification(false);
     setPendingSignup(null);
+    setPendingLogin(null);
+    setLoginOTPMode(false);
   };
 
   return (
@@ -200,7 +249,7 @@ const Auth = () => {
           {showOTPVerification ? (
             <OTPVerification
               email={otpEmail}
-              onVerified={handleOTPVerified}
+              onVerified={loginOTPMode ? handleLoginOTPVerified : handleOTPVerified}
               onCancel={handleCancelOTP}
             />
           ) : (
