@@ -156,22 +156,64 @@ export default function Presentations() {
     }
   };
 
-  const exportToPDF = async () => {
+  const [isExporting, setIsExporting] = useState(false);
+
+  const exportAllSlides = async () => {
     if (!slideRef.current || !currentPresentation) return;
     
-    toast.info('Export en cours...');
+    setIsExporting(true);
+    toast.info(`Export des ${currentPresentation.slides.length} slides en cours...`);
     
     try {
-      // For now, export current slide as image
-      const dataUrl = await toPng(slideRef.current, { quality: 1 });
+      const savedIndex = currentSlideIndex;
+      const images: string[] = [];
+
+      for (let i = 0; i < currentPresentation.slides.length; i++) {
+        setCurrentSlideIndex(i);
+        // Wait for render
+        await new Promise(resolve => setTimeout(resolve, 300));
+        const dataUrl = await toPng(slideRef.current!, { quality: 1, pixelRatio: 2 });
+        images.push(dataUrl);
+      }
+
+      // Create a combined canvas
+      const firstImg = new window.Image();
+      firstImg.src = images[0];
+      await new Promise(resolve => { firstImg.onload = resolve; });
+
+      const slideWidth = firstImg.naturalWidth;
+      const slideHeight = firstImg.naturalHeight;
+
+      const canvas = document.createElement('canvas');
+      canvas.width = slideWidth;
+      canvas.height = slideHeight * images.length;
+      const ctx = canvas.getContext('2d')!;
+
+      for (let i = 0; i < images.length; i++) {
+        const img = new window.Image();
+        img.src = images[i];
+        await new Promise(resolve => { img.onload = resolve; });
+        ctx.drawImage(img, 0, i * slideHeight);
+      }
+
+      const blob = await new Promise<Blob>((resolve) => {
+        canvas.toBlob((b) => resolve(b!), 'image/png');
+      });
+
+      const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.download = `${currentPresentation.title}-slide-${currentSlideIndex + 1}.png`;
-      link.href = dataUrl;
+      link.download = `${currentPresentation.title}_complet.png`;
+      link.href = url;
       link.click();
-      toast.success('Slide exportée !');
+      URL.revokeObjectURL(url);
+
+      setCurrentSlideIndex(savedIndex);
+      toast.success(`${images.length} slides exportées avec succès !`);
     } catch (error) {
       console.error('Export error:', error);
-      toast.error('Erreur lors de l\'export');
+      toast.error("Erreur lors de l'export");
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -356,9 +398,9 @@ export default function Presentations() {
               {showNotes ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
               Notes
             </Button>
-            <Button variant="outline" onClick={exportToPDF}>
+            <Button variant="outline" onClick={exportAllSlides} disabled={isExporting}>
               <Download className="h-4 w-4 mr-2" />
-              Export
+              {isExporting ? 'Export...' : 'Exporter tout'}
             </Button>
             <Button onClick={toggleFullscreen}>
               <Play className="h-4 w-4 mr-2" />
