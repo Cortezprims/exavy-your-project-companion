@@ -8,6 +8,7 @@ import { DocumentUpload } from '@/components/documents/DocumentUpload';
 import { DocumentProcessingProgress } from '@/components/documents/DocumentProcessingProgress';
 import { GenerateOptionsDialog } from '@/components/documents/GenerateOptionsDialog';
 import { GenerateExamDialog } from '@/components/documents/GenerateExamDialog';
+import { GeneratePresentationDialog } from '@/components/presentations/GeneratePresentationDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdmin } from '@/hooks/useAdmin';
@@ -193,31 +194,14 @@ const Documents = () => {
     }
   };
 
-  const handleGeneratePresentation = async (doc: Document) => {
+  const [presentationDialogDoc, setPresentationDialogDoc] = useState<Document | null>(null);
+
+  const handleGeneratePresentation = (doc: Document) => {
     if (doc.status !== 'completed') {
       toast.error('Le document doit être traité avant de générer une présentation');
       return;
     }
-
-    toast.loading('Génération de la présentation...', { id: 'presentation' });
-    
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      const { data, error } = await supabase.functions.invoke('generate-presentation', {
-        body: { documentId: doc.id, theme: 'modern', slideCount: 10, includeNotes: true },
-        headers: { Authorization: `Bearer ${session?.access_token}` }
-      });
-
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-
-      toast.success('Présentation générée avec succès !', { id: 'presentation' });
-      navigate('/presentations');
-    } catch (error: any) {
-      console.error('Error generating presentation:', error);
-      toast.error(error.message || 'Erreur lors de la génération', { id: 'presentation' });
-    }
+    setPresentationDialogDoc(doc);
   };
 
   const handleChatWithDocument = (doc: Document) => {
@@ -462,6 +446,16 @@ const Documents = () => {
             onOpenChange={setExamDialogOpen}
             documentId={examDocument.id}
             documentTitle={examDocument.title}
+          />
+        )}
+
+        {/* Presentation Dialog */}
+        {presentationDialogDoc && (
+          <GeneratePresentationDialog
+            open={!!presentationDialogDoc}
+            onOpenChange={(open) => { if (!open) setPresentationDialogDoc(null); }}
+            documentId={presentationDialogDoc.id}
+            documentTitle={presentationDialogDoc.title}
           />
         )}
       </div>

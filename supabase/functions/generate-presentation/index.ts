@@ -63,7 +63,7 @@ serve(async (req) => {
       }
     }
 
-    const { documentId, theme, slideCount, includeNotes } = await req.json();
+    const { documentId, theme, slideCount, includeNotes, languageLevel, graphicStyle, contentDensity, additionalNotes } = await req.json();
 
     // Fetch document content
     const { data: document, error: docError } = await supabase
@@ -125,14 +125,39 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
+    const languageLevelMap: Record<string, string> = {
+      primary: 'Niveau Primaire : utilise un vocabulaire simple, des phrases courtes, des exemples concrets et ludiques',
+      secondary: 'Niveau Secondaire : utilise un vocabulaire clair et structuré, avec des définitions et des exemples',
+      university: 'Niveau Universitaire : utilise un vocabulaire technique et précis, avec des références académiques',
+    };
+
+    const graphicStyleMap: Record<string, string> = {
+      professional: 'Style professionnel : suggère des graphiques, schémas et diagrammes',
+      playful: 'Style ludique : suggère des icônes colorées, illustrations amusantes et visuels engageants',
+      minimalist: 'Style minimaliste : très peu de suggestions d\'images, mise en avant du texte',
+      infographic: 'Style infographie : suggère des visualisations de données, statistiques visuelles et comparatifs',
+    };
+
+    const contentDensityMap: Record<string, string> = {
+      light: 'Contenu léger : maximum 3-4 points par slide, très aéré et espacé',
+      balanced: 'Contenu équilibré : 5-6 points par slide',
+      dense: 'Contenu dense : 7-8 points par slide avec beaucoup de détails',
+    };
+
+    const levelInstruction = languageLevelMap[languageLevel] || languageLevelMap.university;
+    const styleInstruction = graphicStyleMap[graphicStyle] || graphicStyleMap.professional;
+    const densityInstruction = contentDensityMap[contentDensity] || contentDensityMap.balanced;
+
     const systemPrompt = `Tu es un expert en création de présentations professionnelles.
 Tu crées des slides claires, visuellement attrayantes et pédagogiques.
 
 Style de présentation : ${selectedTheme.name}
+${levelInstruction}
+${styleInstruction}
+${densityInstruction}
 - Utilise des titres impactants
-- Maximum 5-7 points par slide
-- Inclus des suggestions d'images/graphiques quand pertinent
-${includeNotes ? '- Génère des notes de présentation détaillées pour chaque slide' : ''}`;
+${includeNotes ? '- Génère des notes de présentation détaillées pour chaque slide' : ''}
+${additionalNotes ? `\nInstructions supplémentaires de l'utilisateur : ${additionalNotes}` : ''}`;
 
     const userPrompt = `Crée une présentation de ${slideCount || 10} slides basée sur ce document :
 
