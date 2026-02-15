@@ -70,13 +70,18 @@ export function useSubscription() {
 
   useEffect(() => {
     if (user) {
+      // If admin, no need to fetch subscription — they have full access
+      if (isAdmin) {
+        setLoading(false);
+        return;
+      }
       fetchSubscriptionData();
     } else {
       setSubscription(null);
       setUsage(null);
       setLoading(false);
     }
-  }, [user]);
+  }, [user, isAdmin]);
 
   const fetchSubscriptionData = async () => {
     if (!user) return;
