@@ -607,6 +607,48 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          academic_level: string | null
+          created_at: string
+          first_name: string
+          goals: string[] | null
+          id: string
+          last_name: string
+          onboarding_completed: boolean
+          profession: string
+          professional_domain: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          academic_level?: string | null
+          created_at?: string
+          first_name?: string
+          goals?: string[] | null
+          id?: string
+          last_name?: string
+          onboarding_completed?: boolean
+          profession?: string
+          professional_domain?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          academic_level?: string | null
+          created_at?: string
+          first_name?: string
+          goals?: string[] | null
+          id?: string
+          last_name?: string
+          onboarding_completed?: boolean
+          profession?: string
+          professional_domain?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       project_documents: {
         Row: {
           created_at: string
