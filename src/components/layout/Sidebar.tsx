@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdmin } from '@/hooks/useAdmin';
+import { useTheme } from '@/hooks/useTheme';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { TicketNotification } from '@/components/admin/TicketNotification';
@@ -29,7 +30,9 @@ import {
   GraduationCap,
   ClipboardList,
   Presentation,
-  Phone
+  Phone,
+  Sun,
+  Moon
 } from 'lucide-react';
 
 const menuItems = [
@@ -62,6 +65,7 @@ export const Sidebar = () => {
   const location = useLocation();
   const { signOut } = useAuth();
   const { isAdmin } = useAdmin();
+  const { theme, toggleTheme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
 
   const handleSignOut = async () => {
@@ -178,6 +182,19 @@ export const Sidebar = () => {
             <NavItem key={item.path} {...item} />
           ))}
           
+          {/* Theme Toggle */}
+          <button
+            onClick={toggleTheme}
+            className="nav-item-bauhaus w-full text-left"
+          >
+            <div className="w-8 h-8 flex items-center justify-center">
+              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </div>
+            <span className="text-sm font-medium">
+              {theme === 'dark' ? 'Mode clair' : 'Mode sombre'}
+            </span>
+          </button>
+
           {/* Sign Out Button */}
           <button
             onClick={handleSignOut}
