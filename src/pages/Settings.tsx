@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
+import { useTheme } from "@/hooks/useTheme";
 import {
   User,
   Bell,
@@ -23,7 +24,7 @@ import {
 
 const Settings = () => {
   const [displayName, setDisplayName] = useState("");
-  const [theme, setTheme] = useState("light");
+  const { theme, setTheme } = useTheme();
   const [language, setLanguage] = useState("fr");
   const [notifications, setNotifications] = useState(true);
   const [dailyGoal, setDailyGoal] = useState(30);
