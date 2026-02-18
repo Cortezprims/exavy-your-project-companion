@@ -1,9 +1,52 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, BookOpen, Sparkles, Brain, Zap, CheckCircle2, Download } from "lucide-react";
+import { ArrowRight, BookOpen, Sparkles, Brain, Zap, CheckCircle2, Download, Star, Quote } from "lucide-react";
 import { Link } from "react-router-dom";
 import exavyLogo from '@/assets/exavy-logo.jpg';
+import student1 from '@/assets/student-1.jpg';
+import student2 from '@/assets/student-2.jpg';
+import student3 from '@/assets/student-3.jpg';
+import student4 from '@/assets/student-4.jpg';
+import student5 from '@/assets/student-5.jpg';
 
 const Index = () => {
+  const testimonials = [
+    {
+      name: "Kofi Mensah",
+      role: "Étudiant en Droit, Université de Lomé",
+      avatar: student1,
+      rating: 5,
+      text: "EXAVY a complètement transformé ma façon de réviser. En quelques minutes, je génère des fiches de révision et des quiz à partir de mes cours de droit. J'ai réussi mes partiels avec mention grâce à cette application !"
+    },
+    {
+      name: "Aminata Diallo",
+      role: "Lycéenne, Terminale S — Dakar",
+      avatar: student2,
+      rating: 5,
+      text: "Avant EXAVY, je passais des heures à faire des résumés. Maintenant, je charge mon PDF et en 30 secondes j'ai un résumé clair et des flashcards prêtes. Mon bac de philo ? Validé ! Je recommande à tous mes camarades."
+    },
+    {
+      name: "Chloé Nguessan",
+      role: "Étudiante en Médecine, Université d'Abidjan",
+      avatar: student3,
+      rating: 5,
+      text: "Les cours de médecine sont énormes et il est impossible de tout retenir. EXAVY m'a aidée à créer des mind maps et des quiz sur l'anatomie. C'est comme avoir un tuteur personnel disponible 24h/24. Indispensable !"
+    },
+    {
+      name: "Serge Akouele",
+      role: "Master en Informatique, UCAD",
+      avatar: student4,
+      rating: 5,
+      text: "En tant qu'étudiant en master, j'ai beaucoup d'articles et de documentation à assimiler. EXAVY me permet de synthétiser rapidement des sources complexes et de générer des examens blancs. Ma productivité a doublé !"
+    },
+    {
+      name: "Fatou Camara",
+      role: "Étudiante en Marketing, IUA Abidjan",
+      avatar: student5,
+      rating: 5,
+      text: "J'utilisais EXAVY pour préparer mes exposés et mes présentations. L'IA génère des slides professionnelles en quelques secondes. Mes professeurs me demandent toujours comment je fais des présentations aussi bien structurées !"
+    }
+  ];
+
   const features = [
     {
       icon: <Sparkles className="w-6 h-6" />,
@@ -267,6 +310,101 @@ const Index = () => {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="py-20 px-6 bg-muted/30">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center mb-16">
+            <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">
+              Témoignages
+            </p>
+            <h2 className="text-3xl md:text-5xl mb-4">
+              Ils nous font confiance
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              Des milliers d'étudiants africains boostent leurs résultats avec EXAVY
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {testimonials.slice(0, 3).map((t, index) => (
+              <div key={index} className={`bento-card p-6 flex flex-col gap-4 animate-slide-up stagger-${index + 1}`}>
+                {/* Quote icon */}
+                <div className="w-8 h-8 bg-primary flex items-center justify-center flex-shrink-0">
+                  <Quote className="w-4 h-4 text-primary-foreground" />
+                </div>
+                {/* Stars */}
+                <div className="flex gap-1">
+                  {Array.from({ length: t.rating }).map((_, i) => (
+                    <Star key={i} className="w-4 h-4 fill-accent text-accent" />
+                  ))}
+                </div>
+                {/* Text */}
+                <p className="text-muted-foreground text-sm leading-relaxed flex-1">
+                  "{t.text}"
+                </p>
+                {/* Author */}
+                <div className="flex items-center gap-3 pt-2 border-t border-border">
+                  <img
+                    src={t.avatar}
+                    alt={t.name}
+                    className="w-12 h-12 rounded-full object-cover border-2 border-primary/20"
+                  />
+                  <div>
+                    <p className="font-bold text-sm">{t.name}</p>
+                    <p className="text-xs text-muted-foreground">{t.role}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Bottom row — 2 cards centered */}
+          <div className="grid md:grid-cols-2 gap-6 mt-6 max-w-3xl mx-auto">
+            {testimonials.slice(3).map((t, index) => (
+              <div key={index} className={`bento-card p-6 flex flex-col gap-4 animate-slide-up stagger-${index + 4}`}>
+                <div className="w-8 h-8 bg-secondary flex items-center justify-center flex-shrink-0">
+                  <Quote className="w-4 h-4 text-secondary-foreground" />
+                </div>
+                <div className="flex gap-1">
+                  {Array.from({ length: t.rating }).map((_, i) => (
+                    <Star key={i} className="w-4 h-4 fill-accent text-accent" />
+                  ))}
+                </div>
+                <p className="text-muted-foreground text-sm leading-relaxed flex-1">
+                  "{t.text}"
+                </p>
+                <div className="flex items-center gap-3 pt-2 border-t border-border">
+                  <img
+                    src={t.avatar}
+                    alt={t.name}
+                    className="w-12 h-12 rounded-full object-cover border-2 border-secondary/20"
+                  />
+                  <div>
+                    <p className="font-bold text-sm">{t.name}</p>
+                    <p className="text-xs text-muted-foreground">{t.role}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Global rating badge */}
+          <div className="mt-12 flex justify-center">
+            <div className="inline-flex items-center gap-4 bg-card border-2 border-accent px-8 py-4">
+              <div className="flex gap-1">
+                {[1,2,3,4,5].map(i => (
+                  <Star key={i} className="w-5 h-5 fill-accent text-accent" />
+                ))}
+              </div>
+              <div>
+                <p className="font-black text-2xl">4.9 / 5</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Note moyenne · +2 000 avis</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
