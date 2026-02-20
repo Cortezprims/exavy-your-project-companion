@@ -31,6 +31,7 @@ import {
   ClipboardList,
   Presentation,
   Phone,
+  Bell,
   Sun,
   Moon
 } from 'lucide-react';
@@ -53,6 +54,7 @@ const menuItems = [
 ];
 
 const bottomMenuItems = [
+  { icon: Bell, label: 'Notifications', path: '/notifications' },
   { icon: User, label: 'Profil', path: '/profile' },
   { icon: CreditCard, label: 'Abonnement', path: '/subscription' },
   { icon: HelpCircle, label: 'Aide', path: '/help' },
