@@ -31,6 +31,7 @@ import Admin from "./pages/Admin";
 import Help from "./pages/Help";
 import Contact from "./pages/Contact";
 import Install from "./pages/Install";
+import Notifications from "./pages/Notifications";
 
 const queryClient = new QueryClient();
 
@@ -136,6 +137,7 @@ const App = () => (
               <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
               <Route path="/help" element={<ProtectedRoute><Help /></ProtectedRoute>} />
               <Route path="/contact" element={<ProtectedRoute><Contact /></ProtectedRoute>} />
+              <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
               <Route path="/install" element={<Install />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
