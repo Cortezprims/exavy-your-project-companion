@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useDropzone } from 'react-dropzone';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -70,6 +71,7 @@ const formatFileSize = (bytes: number): string => {
 export const DocumentUpload = ({ onUploadComplete }: DocumentUploadProps) => {
   const { user } = useAuth();
   const { isPremium: checkIsPremium } = useSubscription();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -221,7 +223,7 @@ export const DocumentUpload = ({ onUploadComplete }: DocumentUploadProps) => {
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => window.location.href = '/subscription'}
+                onClick={() => { setOpen(false); navigate('/subscription'); }}
               >
                 Passer à Premium
               </Button>
