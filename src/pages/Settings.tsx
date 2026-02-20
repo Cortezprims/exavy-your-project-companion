@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { useTheme } from "@/hooks/useTheme";
+import { useSubscription } from "@/hooks/useSubscription";
+import { Badge } from "@/components/ui/badge";
 import {
   User,
   Bell,
@@ -19,7 +21,9 @@ import {
   Save,
   Loader2,
   Moon,
-  Sun
+  Sun,
+  Crown,
+  Gift
 } from "lucide-react";
 
 const Settings = () => {
@@ -29,6 +33,23 @@ const Settings = () => {
   const [notifications, setNotifications] = useState(true);
   const [dailyGoal, setDailyGoal] = useState(30);
   const [isSaving, setIsSaving] = useState(false);
+  const { subscription, isPremium, getCurrentPlan } = useSubscription();
+
+  const getTrialDaysRemaining = () => {
+    if (!subscription?.expires_at) return null;
+    const expires = new Date(subscription.expires_at);
+    const now = new Date();
+    const diff = expires.getTime() - now.getTime();
+    if (diff <= 0) return null;
+    const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+    // Only show for short subscriptions (trial = 3 days)
+    const started = new Date(subscription.started_at);
+    const subDuration = expires.getTime() - started.getTime();
+    if (subDuration <= 4 * 24 * 60 * 60 * 1000) return days; // trial if ≤ 4 days
+    return null;
+  };
+
+  const trialDays = getTrialDaysRemaining();
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -199,12 +220,43 @@ const Settings = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-medium">Statut de l'abonnement</p>
-                <p className="text-sm text-muted-foreground capitalize">Gratuit</p>
+                <p className="text-sm text-muted-foreground capitalize">
+                  {isPremium() ? (
+                    <span className="flex items-center gap-1 text-primary">
+                      <Crown className="w-3 h-3" />
+                      Premium {getCurrentPlan() === 'yearly' ? 'Annuel' : 'Mensuel'}
+                    </span>
+                  ) : 'Gratuit'}
+                </p>
               </div>
               <Button variant="outline" asChild>
                 <a href="/subscription">Gérer</a>
               </Button>
             </div>
+
+            {trialDays !== null && (
+              <>
+                <Separator />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Gift className="w-4 h-4 text-primary" />
+                    <div>
+                      <p className="font-medium">Essai Premium gratuit</p>
+                      <p className="text-sm text-muted-foreground">
+                        {trialDays > 0 
+                          ? `Il vous reste ${trialDays} jour${trialDays > 1 ? 's' : ''} d'essai`
+                          : "Votre essai a expiré"
+                        }
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant="secondary" className="gap-1">
+                    <Crown className="w-3 h-3" />
+                    {trialDays} jour{trialDays > 1 ? 's' : ''}
+                  </Badge>
+                </div>
+              </>
+            )}
 
             <Separator />
 

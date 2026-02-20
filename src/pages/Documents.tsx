@@ -141,6 +141,37 @@ const Documents = () => {
     fetchDocuments();
   }, [user]);
 
+  // Realtime subscription for document status updates
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('documents-status')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'documents',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          setDocuments(prev => 
+            prev.map(doc => 
+              doc.id === payload.new.id 
+                ? { ...doc, status: payload.new.status as string } 
+                : doc
+            )
+          );
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
   const deleteDocument = async (id: string, filePath: string | null) => {
     try {
       // Delete from storage if file exists
