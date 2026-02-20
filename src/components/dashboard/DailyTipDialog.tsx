@@ -57,7 +57,7 @@ export const DailyTipDialog = () => {
       });
 
       if (error) {
-        console.error('Error fetching tip:', error);
+        // Silently ignore "no documents" or 404 errors — user just hasn't uploaded docs yet
         return;
       }
 
@@ -69,7 +69,7 @@ export const DailyTipDialog = () => {
         setHasShownToday(true);
       }
     } catch (err) {
-      console.error('Error:', err);
+      // Silently ignore - tip is non-critical
     } finally {
       setLoading(false);
     }
