@@ -185,6 +185,31 @@ const Dashboard = () => {
   return (
     <MainLayout>
       <DailyTipDialog />
+      {/* Top-right action buttons */}
+      <div className="absolute top-4 right-4 md:top-6 md:right-8 flex items-center gap-2 z-20">
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={toggleTheme}
+          className="h-10 w-10 border-2 border-border bg-background"
+        >
+          {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => navigate('/notifications')}
+          className="h-10 w-10 border-2 border-border bg-background relative"
+        >
+          <Bell className="w-4 h-4" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 w-5 h-5 bg-secondary text-secondary-foreground text-xs font-bold rounded-full flex items-center justify-center">
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
+          )}
+        </Button>
+      </div>
+
       <div className="p-6 md:p-8 space-y-8 animate-fade-in">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
@@ -199,38 +224,13 @@ const Dashboard = () => {
               Prêt à continuer votre apprentissage ?
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            {/* Theme Toggle */}
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={toggleTheme}
-              className="h-10 w-10 border-2 border-border"
-            >
-              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </Button>
-            {/* Notifications */}
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => navigate('/notifications')}
-              className="h-10 w-10 border-2 border-border relative"
-            >
-              <Bell className="w-4 h-4" />
-              {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-secondary text-secondary-foreground text-xs font-bold rounded-full flex items-center justify-center">
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </span>
-              )}
-            </Button>
-            <Button asChild className="btn-bauhaus bg-primary text-primary-foreground border-primary">
-              <Link to="/documents" className="gap-2">
-                <FileText className="w-4 h-4" />
-                Ajouter un document
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            </Button>
-          </div>
+          <Button asChild className="btn-bauhaus bg-primary text-primary-foreground border-primary">
+            <Link to="/documents" className="gap-2">
+              <FileText className="w-4 h-4" />
+              Ajouter un document
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </Button>
         </div>
 
         {/* Stats Grid - Bento Style */}
