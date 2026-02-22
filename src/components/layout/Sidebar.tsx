@@ -54,7 +54,6 @@ const menuItems = [
 ];
 
 const bottomMenuItems = [
-  { icon: Bell, label: 'Notifications', path: '/notifications' },
   { icon: User, label: 'Profil', path: '/profile' },
   { icon: CreditCard, label: 'Abonnement', path: '/subscription' },
   { icon: HelpCircle, label: 'Aide', path: '/help' },
@@ -184,19 +183,6 @@ export const Sidebar = () => {
             <NavItem key={item.path} {...item} />
           ))}
           
-          {/* Theme Toggle */}
-          <button
-            onClick={toggleTheme}
-            className="nav-item-bauhaus w-full text-left"
-          >
-            <div className="w-8 h-8 flex items-center justify-center">
-              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </div>
-            <span className="text-sm font-medium">
-              {theme === 'dark' ? 'Mode clair' : 'Mode sombre'}
-            </span>
-          </button>
-
           {/* Sign Out Button */}
           <button
             onClick={handleSignOut}
