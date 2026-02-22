@@ -17,7 +17,10 @@ import {
   Brain,
   Clock,
   Flame,
-  Coffee
+  Coffee,
+  FileText,
+  X,
+  Paperclip
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
@@ -30,6 +33,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 
 interface Message {
   id: string;
@@ -44,6 +52,13 @@ interface ExabotProfile {
   burnout_score: number;
   streak_days: number;
   total_study_minutes: number;
+}
+
+interface UserDocument {
+  id: string;
+  title: string;
+  content: string | null;
+  summary: string | null;
 }
 
 const PERSONALITY_OPTIONS = [
@@ -74,31 +89,45 @@ const ChatAI = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [profile, setProfile] = useState<ExabotProfile | null>(null);
+  const [documents, setDocuments] = useState<UserDocument[]>([]);
+  const [selectedDoc, setSelectedDoc] = useState<UserDocument | null>(null);
+  const [docPopoverOpen, setDocPopoverOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (user) {
       fetchProfile();
+      fetchDocuments();
     }
   }, [user]);
 
   const fetchProfile = async () => {
     if (!user) return;
-    
     const { data } = await supabase
       .from('exabot_profiles')
       .select('*')
       .eq('user_id', user.id)
       .single();
-    
     if (data) {
       setProfile(data as ExabotProfile);
     }
   };
 
+  const fetchDocuments = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('documents')
+      .select('id, title, content, summary')
+      .eq('user_id', user.id)
+      .eq('status', 'processed')
+      .order('created_at', { ascending: false });
+    if (data) {
+      setDocuments(data);
+    }
+  };
+
   const updateProfile = async (field: string, value: string) => {
     if (!user) return;
-
     const { error } = await supabase
       .from('exabot_profiles')
       .upsert({
@@ -106,7 +135,6 @@ const ChatAI = () => {
         [field]: value,
         updated_at: new Date().toISOString(),
       });
-
     if (!error) {
       setProfile(prev => prev ? { ...prev, [field]: value } : null);
       toast.success('Préférences mises à jour');
@@ -133,22 +161,38 @@ const ChatAI = () => {
   const handleSend = async () => {
     if (!input.trim() || isLoading || !user) return;
 
+    // Build user content with optional document context
+    let userContent = input;
+    if (selectedDoc) {
+      const docContent = selectedDoc.content?.substring(0, 3000) || selectedDoc.summary || '';
+      userContent = `[Document joint: "${selectedDoc.title}"]\n\nContenu du document:\n${docContent}\n\n---\n\nMa question: ${input}`;
+    }
+
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
-      content: input,
+      content: selectedDoc ? `📎 ${selectedDoc.title}\n\n${input}` : input,
       timestamp: new Date(),
     };
 
     setMessages(prev => [...prev, userMessage]);
     setInput('');
+    setSelectedDoc(null);
     setIsLoading(true);
 
     try {
+      // Get the user's actual session token
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+      
+      if (!accessToken) {
+        throw new Error('Session expirée. Veuillez vous reconnecter.');
+      }
+
       const chatMessages = messages
         .filter(m => m.id !== '1')
         .map(m => ({ role: m.role, content: m.content }));
-      chatMessages.push({ role: 'user', content: input });
+      chatMessages.push({ role: 'user', content: userContent });
 
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/exabot-chat`,
@@ -156,11 +200,11 @@ const ChatAI = () => {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            'Authorization': `Bearer ${accessToken}`,
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
           },
           body: JSON.stringify({
             messages: chatMessages,
-            userId: user.id,
           }),
         }
       );
@@ -180,7 +224,6 @@ const ChatAI = () => {
       let assistantContent = '';
       const assistantMessageId = (Date.now() + 1).toString();
 
-      // Add empty assistant message
       setMessages(prev => [...prev, {
         id: assistantMessageId,
         role: 'assistant',
@@ -196,7 +239,6 @@ const ChatAI = () => {
 
         textBuffer += decoder.decode(value, { stream: true });
 
-        // Process line by line
         let newlineIndex: number;
         while ((newlineIndex = textBuffer.indexOf('\n')) !== -1) {
           let line = textBuffer.slice(0, newlineIndex);
@@ -223,7 +265,6 @@ const ChatAI = () => {
               );
             }
           } catch {
-            // Incomplete JSON, put back and wait
             textBuffer = line + '\n' + textBuffer;
             break;
           }
@@ -411,9 +452,49 @@ const ChatAI = () => {
               </div>
             </ScrollArea>
 
+            {/* Selected Document Badge */}
+            {selectedDoc && (
+              <div className="px-4 pt-2">
+                <Badge variant="secondary" className="gap-1">
+                  <FileText className="w-3 h-3" />
+                  {selectedDoc.title}
+                  <button onClick={() => setSelectedDoc(null)} className="ml-1 hover:text-destructive">
+                    <X className="w-3 h-3" />
+                  </button>
+                </Badge>
+              </div>
+            )}
+
             {/* Input Area */}
             <div className="p-4 border-t">
               <div className="flex gap-2">
+                {/* Document attach button */}
+                <Popover open={docPopoverOpen} onOpenChange={setDocPopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="icon" disabled={isLoading || !user || documents.length === 0} title="Joindre un document">
+                      <Paperclip className="w-4 h-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-72 p-2" align="start">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1">Vos documents</p>
+                    <ScrollArea className="max-h-48">
+                      {documents.map(doc => (
+                        <button
+                          key={doc.id}
+                          onClick={() => {
+                            setSelectedDoc(doc);
+                            setDocPopoverOpen(false);
+                          }}
+                          className="w-full text-left px-2 py-2 text-sm hover:bg-muted rounded-md flex items-center gap-2 transition-colors"
+                        >
+                          <FileText className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                          <span className="truncate">{doc.title}</span>
+                        </button>
+                      ))}
+                    </ScrollArea>
+                  </PopoverContent>
+                </Popover>
+
                 <Input
                   placeholder="Pose ta question à EXABOT..."
                   value={input}

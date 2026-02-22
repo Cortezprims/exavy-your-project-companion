@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useAuth } from '@/hooks/useAuth';
+import { useTheme } from '@/hooks/useTheme';
 import { supabase } from '@/integrations/supabase/client';
 import { DailyTipDialog } from '@/components/dashboard/DailyTipDialog';
 import { 
@@ -16,9 +17,12 @@ import {
   Target,
   Zap,
   Loader2,
-  ArrowRight
+  ArrowRight,
+  Bell,
+  Sun,
+  Moon
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -38,6 +42,9 @@ interface RecentActivity {
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  const navigate = useNavigate();
+  const [unreadCount, setUnreadCount] = useState(0);
   const [stats, setStats] = useState<DashboardStats>({
     documents: 0,
     quizzes: 0,
@@ -50,8 +57,18 @@ const Dashboard = () => {
   useEffect(() => {
     if (user) {
       fetchDashboardData();
+      fetchUnreadCount();
     }
   }, [user]);
+
+  const fetchUnreadCount = async () => {
+    if (!user) return;
+    const { count } = await supabase
+      .from('notifications')
+      .select('*', { count: 'exact', head: true })
+      .eq('is_read', false);
+    setUnreadCount(count || 0);
+  };
 
   const fetchDashboardData = async () => {
     try {
@@ -182,13 +199,38 @@ const Dashboard = () => {
               Prêt à continuer votre apprentissage ?
             </p>
           </div>
-          <Button asChild className="btn-bauhaus bg-primary text-primary-foreground border-primary">
-            <Link to="/documents" className="gap-2">
-              <FileText className="w-4 h-4" />
-              Ajouter un document
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </Button>
+          <div className="flex items-center gap-3">
+            {/* Theme Toggle */}
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={toggleTheme}
+              className="h-10 w-10 border-2 border-border"
+            >
+              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </Button>
+            {/* Notifications */}
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => navigate('/notifications')}
+              className="h-10 w-10 border-2 border-border relative"
+            >
+              <Bell className="w-4 h-4" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-secondary text-secondary-foreground text-xs font-bold rounded-full flex items-center justify-center">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </Button>
+            <Button asChild className="btn-bauhaus bg-primary text-primary-foreground border-primary">
+              <Link to="/documents" className="gap-2">
+                <FileText className="w-4 h-4" />
+                Ajouter un document
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </Button>
+          </div>
         </div>
 
         {/* Stats Grid - Bento Style */}
