@@ -6,7 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
 import { supabase } from '@/integrations/supabase/client';
-import { DailyTipDialog } from '@/components/dashboard/DailyTipDialog';
+import { DailyTipBlock } from '@/components/dashboard/DailyTipBlock';
 import { 
   FileText, 
   Brain, 
@@ -184,7 +184,7 @@ const Dashboard = () => {
 
   return (
     <MainLayout>
-      <DailyTipDialog />
+      
       {/* Top-right action buttons */}
       <div className="absolute top-4 right-4 md:top-6 md:right-8 flex items-center gap-2 z-20">
         <Button
@@ -376,6 +376,9 @@ const Dashboard = () => {
             <div className="w-4 h-4 bg-accent" />
           </div>
         </div>
+
+        {/* Daily Tip Block */}
+        <DailyTipBlock />
       </div>
     </MainLayout>
   );
