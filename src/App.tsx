@@ -35,6 +35,22 @@ import Notifications from "./pages/Notifications";
 
 const queryClient = new QueryClient();
 
+const LoadingSpinner = () => (
+  <div className="flex flex-col items-center gap-4">
+    <div className="relative w-16 h-16">
+      {/* Outer spinning square */}
+      <div className="absolute inset-0 border-4 border-primary/30 animate-spin" style={{ animationDuration: '2s' }} />
+      {/* Inner pulsing circle */}
+      <div className="absolute inset-2 bg-primary/20 rounded-full animate-pulse flex items-center justify-center">
+        <svg className="w-6 h-6 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+        </svg>
+      </div>
+    </div>
+    <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground animate-pulse">Chargement...</p>
+  </div>
+);
+
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
   const { needsOnboarding, loading: profileLoading } = useProfile();
@@ -42,8 +58,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   if (loading || profileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
+      <LoadingSpinner />
+    </div>
     );
   }
 
@@ -65,7 +81,7 @@ const OnboardingRoute = ({ children }: { children: React.ReactNode }) => {
   if (loading || profileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <LoadingSpinner />
       </div>
     );
   }
@@ -88,7 +104,7 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <LoadingSpinner />
       </div>
     );
   }
