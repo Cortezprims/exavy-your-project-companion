@@ -36,18 +36,34 @@ import Notifications from "./pages/Notifications";
 const queryClient = new QueryClient();
 
 const LoadingSpinner = () => (
-  <div className="flex flex-col items-center gap-4">
-    <div className="relative w-16 h-16">
-      {/* Outer spinning square */}
-      <div className="absolute inset-0 border-4 border-primary/30 animate-spin" style={{ animationDuration: '2s' }} />
-      {/* Inner pulsing circle */}
-      <div className="absolute inset-2 bg-primary/20 rounded-full animate-pulse flex items-center justify-center">
-        <svg className="w-6 h-6 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+  <div className="flex flex-col items-center gap-6">
+    <div className="relative w-20 h-20">
+      {/* Orbiting dots - Bauhaus primary colors */}
+      <div className="absolute inset-0 animate-spin" style={{ animationDuration: '3s' }}>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-primary" />
+      </div>
+      <div className="absolute inset-0 animate-spin" style={{ animationDuration: '3s', animationDelay: '1s' }}>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-secondary" />
+      </div>
+      <div className="absolute inset-0 animate-spin" style={{ animationDuration: '3s', animationDelay: '2s' }}>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-accent" />
+      </div>
+      {/* Central book icon */}
+      <div className="absolute inset-3 bg-card rounded-xl shadow-card flex items-center justify-center animate-pulse">
+        <svg className="w-8 h-8 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
         </svg>
       </div>
     </div>
-    <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground animate-pulse">Chargement...</p>
+    <div className="flex flex-col items-center gap-1">
+      <p className="text-sm font-bold uppercase tracking-[0.2em] text-foreground">Chargement</p>
+      <div className="flex gap-1">
+        <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0s' }} />
+        <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-bounce" style={{ animationDelay: '0.15s' }} />
+        <span className="w-1.5 h-1.5 rounded-full bg-accent animate-bounce" style={{ animationDelay: '0.3s' }} />
+      </div>
+    </div>
   </div>
 );
 
