@@ -119,7 +119,7 @@ const ChatAI = () => {
       .from('documents')
       .select('id, title, content, summary')
       .eq('user_id', user.id)
-      .eq('status', 'processed')
+      .in('status', ['processed', 'completed'])
       .order('created_at', { ascending: false });
     if (data) {
       setDocuments(data);
