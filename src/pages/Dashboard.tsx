@@ -45,6 +45,7 @@ const Dashboard = () => {
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [unreadCount, setUnreadCount] = useState(0);
+  const [firstName, setFirstName] = useState<string | null>(null);
   const [stats, setStats] = useState<DashboardStats>({
     documents: 0,
     quizzes: 0,
@@ -58,8 +59,21 @@ const Dashboard = () => {
     if (user) {
       fetchDashboardData();
       fetchUnreadCount();
+      fetchFirstName();
     }
   }, [user]);
+
+  const fetchFirstName = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('profiles')
+      .select('first_name')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    if (data?.first_name) {
+      setFirstName(data.first_name);
+    }
+  };
 
   const fetchUnreadCount = async () => {
     if (!user) return;
@@ -218,7 +232,7 @@ const Dashboard = () => {
               Bienvenue
             </p>
             <h1 className="text-3xl md:text-4xl">
-              {user?.email?.split('@')[0] || 'Étudiant'} 👋
+              {firstName || user?.user_metadata?.full_name?.split(' ')[0] || 'Étudiant'} 👋
             </h1>
             <p className="text-muted-foreground mt-2">
               Prêt à continuer votre apprentissage ?
