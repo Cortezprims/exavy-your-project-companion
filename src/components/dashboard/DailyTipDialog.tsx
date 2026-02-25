@@ -20,7 +20,7 @@ const typeConfig = {
   conseil: { label: 'Conseil du jour', icon: Lightbulb, color: 'bg-yellow-500' },
   definition: { label: 'Définition à retenir', icon: BookOpen, color: 'bg-blue-500' },
   rappel: { label: 'Rappel', icon: Bell, color: 'bg-orange-500' },
-  point_cle: { label: 'Point clé', icon: Target, color: 'bg-green-500' },
+  point_cle: { label: 'Conseil du Jour', icon: Target, color: 'bg-green-500' },
 };
 
 export const DailyTipDialog = () => {
