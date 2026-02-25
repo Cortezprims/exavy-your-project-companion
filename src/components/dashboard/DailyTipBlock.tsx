@@ -31,15 +31,19 @@ export const DailyTipBlock = () => {
 
   useEffect(() => {
     if (user && isPremium) {
-      const lastShown = localStorage.getItem(`dailyTip_${user.id}`);
-      const today = new Date().toDateString();
-      if (lastShown !== today) {
+      const lastTimestamp = localStorage.getItem(`dailyTipTimestamp_${user.id}`);
+      const now = Date.now();
+      const twentyFourHours = 24 * 60 * 60 * 1000;
+
+      if (!lastTimestamp || (now - parseInt(lastTimestamp, 10)) >= twentyFourHours) {
         fetchDailyTip();
       } else {
-        // Load cached tip
+        // Load cached tip (still within 24h)
         const cached = localStorage.getItem(`dailyTipData_${user.id}`);
         if (cached) {
-          try { setTip(JSON.parse(cached)); } catch {}
+          try { setTip(JSON.parse(cached)); } catch { fetchDailyTip(); }
+        } else {
+          fetchDailyTip();
         }
       }
     }
@@ -54,7 +58,7 @@ export const DailyTipBlock = () => {
       });
       if (!error && data?.tip) {
         setTip(data.tip);
-        localStorage.setItem(`dailyTip_${user.id}`, new Date().toDateString());
+        localStorage.setItem(`dailyTipTimestamp_${user.id}`, Date.now().toString());
         localStorage.setItem(`dailyTipData_${user.id}`, JSON.stringify(data.tip));
       }
     } catch {}
