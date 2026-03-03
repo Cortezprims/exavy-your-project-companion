@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ const Settings = () => {
   const [dailyGoal, setDailyGoal] = useState(30);
   const [isSaving, setIsSaving] = useState(false);
   const { subscription, isPremium, getCurrentPlan } = useSubscription();
+  const { signOut } = useAuth();
 
   const getTrialDaysRemaining = () => {
     if (!subscription?.expires_at) return null;
@@ -59,8 +61,15 @@ const Settings = () => {
   };
 
   const handleSignOut = async () => {
-    toast.success("Déconnexion réussie");
-    window.location.href = '/';
+    try {
+      await signOut();
+      toast.success("Déconnexion réussie");
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Sign out error:', error);
+      // Force clear session even on error
+      window.location.href = '/';
+    }
   };
 
   return (
