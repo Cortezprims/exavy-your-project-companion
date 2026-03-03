@@ -1,8 +1,8 @@
-// Import all source files as raw text at build time
-const srcFiles = import.meta.glob('/src/**/*.{ts,tsx,css}', { query: '?raw', eager: true });
-const supabaseFiles = import.meta.glob('/supabase/functions/**/*.{ts,json}', { query: '?raw', eager: true });
-const configFiles = import.meta.glob('/{vite.config.ts,tailwind.config.ts,tsconfig.json,tsconfig.app.json,tsconfig.node.json,index.html,components.json,postcss.config.js,eslint.config.js,package.json}', { query: '?raw', eager: true });
-const supabaseConfig = import.meta.glob('/supabase/config.toml', { query: '?raw', eager: true });
+// Import ALL source files as raw text at build time
+const srcFiles = import.meta.glob('/src/**/*.{ts,tsx,css,js,jsx,json,md}', { query: '?raw', eager: true });
+const supabaseFiles = import.meta.glob('/supabase/**/*.{ts,tsx,js,json,toml,sql,md}', { query: '?raw', eager: true });
+const publicFiles = import.meta.glob('/public/**/*.{html,css,js,json,xml,txt,svg,webmanifest}', { query: '?raw', eager: true });
+const rootConfigs = import.meta.glob('/{vite.config.ts,tailwind.config.ts,tsconfig.json,tsconfig.app.json,tsconfig.node.json,index.html,components.json,postcss.config.js,eslint.config.js,package.json,README.md,EXAVY_COMPLETE_CODE.md}', { query: '?raw', eager: true });
 
 function extractRaw(mod: unknown): string {
   if (typeof mod === 'string') return mod;
@@ -25,9 +25,10 @@ export function compileAllCode(): string {
   lines.push('');
 
   const sections: { title: string; files: Record<string, unknown> }[] = [
-    { title: 'FICHIERS DE CONFIGURATION', files: { ...configFiles, ...supabaseConfig } },
+    { title: 'FICHIERS DE CONFIGURATION (racine)', files: rootConfigs },
     { title: 'CODE SOURCE (src/)', files: srcFiles },
-    { title: 'EDGE FUNCTIONS (supabase/functions/)', files: supabaseFiles },
+    { title: 'FICHIERS PUBLICS (public/)', files: publicFiles },
+    { title: 'SUPABASE (config, migrations, functions)', files: supabaseFiles },
   ];
 
   for (const section of sections) {
