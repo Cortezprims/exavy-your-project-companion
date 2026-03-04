@@ -11,6 +11,8 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { useTheme } from "@/hooks/useTheme";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useProfile } from "@/hooks/useProfile";
+import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import {
   User,
@@ -28,14 +30,23 @@ import {
 } from "lucide-react";
 
 const Settings = () => {
-  const [displayName, setDisplayName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const { theme, setTheme } = useTheme();
   const [language, setLanguage] = useState("fr");
   const [notifications, setNotifications] = useState(true);
   const [dailyGoal, setDailyGoal] = useState(30);
   const [isSaving, setIsSaving] = useState(false);
   const { subscription, isPremium, getCurrentPlan } = useSubscription();
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
+  const { profile, refresh: refreshProfile } = useProfile();
+
+  useEffect(() => {
+    if (profile) {
+      setFirstName(profile.first_name || "");
+      setLastName(profile.last_name || "");
+    }
+  }, [profile]);
 
   const getTrialDaysRemaining = () => {
     if (!subscription?.expires_at) return null;
@@ -54,10 +65,22 @@ const Settings = () => {
   const trialDays = getTrialDaysRemaining();
 
   const handleSave = async () => {
+    if (!user) return;
     setIsSaving(true);
-    await new Promise(resolve => setTimeout(resolve, 500));
-    toast.success("Paramètres sauvegardés");
-    setIsSaving(false);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ first_name: firstName, last_name: lastName })
+        .eq('user_id', user.id);
+      if (error) throw error;
+      await refreshProfile();
+      toast.success("Profil mis à jour");
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast.error("Erreur lors de la mise à jour");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleSignOut = async () => {
@@ -91,16 +114,24 @@ const Settings = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label>Nom d'affichage</Label>
+              <Label>Prénom</Label>
               <Input
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                placeholder="Votre prénom"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Nom</Label>
+              <Input
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
                 placeholder="Votre nom"
               />
             </div>
             <div className="space-y-2">
               <Label>Email</Label>
-              <Input value="utilisateur@example.com" disabled />
+              <Input value={user?.email || ""} disabled />
               <p className="text-xs text-muted-foreground">L'email ne peut pas être modifié</p>
             </div>
             <div className="space-y-2">
