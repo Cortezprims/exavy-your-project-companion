@@ -32,6 +32,7 @@ export function CampayPaymentDialog({
   planName,
   amount,
   userId,
+  onPaymentSuccess,
 }: CampayPaymentDialogProps) {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [status, setStatus] = useState<PaymentStatus>('idle');
