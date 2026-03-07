@@ -165,6 +165,7 @@ export function PaymentMethodSelector({
         planName={planName}
         amountUSD={amountUSD}
         userId={userId}
+        onPaymentSuccess={onPaymentSuccess}
       />
     </>
   );
