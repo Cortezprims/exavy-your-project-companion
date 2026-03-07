@@ -26,6 +26,7 @@ interface PawapayPaymentDialogProps {
   planName: string;
   amountUSD: number;
   userId: string;
+  onPaymentSuccess?: () => void;
 }
 
 type PaymentStatus = 'idle' | 'pending' | 'checking' | 'success' | 'failed';
@@ -58,6 +59,7 @@ export function PawapayPaymentDialog({
   planName,
   amountUSD,
   userId,
+  onPaymentSuccess,
 }: PawapayPaymentDialogProps) {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [selectedProvider, setSelectedProvider] = useState<string>("");
@@ -96,6 +98,7 @@ export function PawapayPaymentDialog({
 
         if (statusData.status === 'COMPLETED') {
           setStatus('success');
+          onPaymentSuccess?.();
           toast({
             title: "Paiement réussi !",
             description: `Votre abonnement ${planName} est maintenant actif.`,

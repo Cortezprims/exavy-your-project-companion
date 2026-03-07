@@ -20,6 +20,7 @@ interface CampayPaymentDialogProps {
   planName: string;
   amount: number;
   userId: string;
+  onPaymentSuccess?: () => void;
 }
 
 type PaymentStatus = 'idle' | 'pending' | 'checking' | 'success' | 'failed';
@@ -31,6 +32,7 @@ export function CampayPaymentDialog({
   planName,
   amount,
   userId,
+  onPaymentSuccess,
 }: CampayPaymentDialogProps) {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [status, setStatus] = useState<PaymentStatus>('idle');
@@ -67,6 +69,7 @@ export function CampayPaymentDialog({
 
         if (statusData.status === 'SUCCESSFUL') {
           setStatus('success');
+          onPaymentSuccess?.();
           toast({
             title: "Paiement réussi !",
             description: `Votre abonnement ${planName} est maintenant actif.`,

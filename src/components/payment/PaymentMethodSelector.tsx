@@ -20,6 +20,7 @@ interface PaymentMethodSelectorProps {
   amountUSD: number;
   amountXAF: number;
   userId: string;
+  onPaymentSuccess?: () => void;
 }
 
 type PaymentMethod = 'campay' | 'pawapay' | null;
@@ -32,6 +33,7 @@ export function PaymentMethodSelector({
   amountUSD,
   amountXAF,
   userId,
+  onPaymentSuccess,
 }: PaymentMethodSelectorProps) {
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>(null);
   const [showCampay, setShowCampay] = useState(false);
@@ -152,6 +154,7 @@ export function PaymentMethodSelector({
         planName={planName}
         amount={amountXAF}
         userId={userId}
+        onPaymentSuccess={onPaymentSuccess}
       />
 
       {/* PawaPay Dialog */}
@@ -162,6 +165,7 @@ export function PaymentMethodSelector({
         planName={planName}
         amountUSD={amountUSD}
         userId={userId}
+        onPaymentSuccess={onPaymentSuccess}
       />
     </>
   );
