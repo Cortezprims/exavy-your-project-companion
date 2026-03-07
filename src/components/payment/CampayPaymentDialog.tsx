@@ -69,6 +69,7 @@ export function CampayPaymentDialog({
 
         if (statusData.status === 'SUCCESSFUL') {
           setStatus('success');
+          onPaymentSuccess?.();
           toast({
             title: "Paiement réussi !",
             description: `Votre abonnement ${planName} est maintenant actif.`,

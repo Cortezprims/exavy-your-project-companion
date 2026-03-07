@@ -98,6 +98,7 @@ export function PawapayPaymentDialog({
 
         if (statusData.status === 'COMPLETED') {
           setStatus('success');
+          onPaymentSuccess?.();
           toast({
             title: "Paiement réussi !",
             description: `Votre abonnement ${planName} est maintenant actif.`,
