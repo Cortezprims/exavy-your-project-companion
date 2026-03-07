@@ -33,6 +33,7 @@ export function PaymentMethodSelector({
   amountUSD,
   amountXAF,
   userId,
+  onPaymentSuccess,
 }: PaymentMethodSelectorProps) {
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>(null);
   const [showCampay, setShowCampay] = useState(false);
