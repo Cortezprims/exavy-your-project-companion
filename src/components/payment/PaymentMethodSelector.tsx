@@ -154,6 +154,7 @@ export function PaymentMethodSelector({
         planName={planName}
         amount={amountXAF}
         userId={userId}
+        onPaymentSuccess={onPaymentSuccess}
       />
 
       {/* PawaPay Dialog */}
