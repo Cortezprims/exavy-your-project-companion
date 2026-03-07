@@ -26,6 +26,7 @@ interface PawapayPaymentDialogProps {
   planName: string;
   amountUSD: number;
   userId: string;
+  onPaymentSuccess?: () => void;
 }
 
 type PaymentStatus = 'idle' | 'pending' | 'checking' | 'success' | 'failed';
