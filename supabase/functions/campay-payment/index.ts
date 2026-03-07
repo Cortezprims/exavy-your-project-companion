@@ -227,9 +227,11 @@ async function handleWebhook(req: Request) {
       const now = new Date();
       let expiresAt: Date;
       if (planId === 'yearly') {
-        expiresAt = new Date(now.setFullYear(now.getFullYear() + 1));
+        expiresAt = new Date(now.getTime());
+        expiresAt.setFullYear(expiresAt.getFullYear() + 1);
       } else {
-        expiresAt = new Date(now.setMonth(now.getMonth() + 1));
+        expiresAt = new Date(now.getTime());
+        expiresAt.setMonth(expiresAt.getMonth() + 1);
       }
 
       // Upsert subscription
