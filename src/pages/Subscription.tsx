@@ -76,7 +76,7 @@ const plans = [
 
 const Subscription = () => {
   const { user } = useAuth();
-  const { getCurrentPlan, isPremium, usage, loading, getLimits, subscription } = useSubscription();
+  const { getCurrentPlan, isPremium, usage, loading, getLimits, subscription, refresh } = useSubscription();
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<typeof plans[0] | null>(null);
 
