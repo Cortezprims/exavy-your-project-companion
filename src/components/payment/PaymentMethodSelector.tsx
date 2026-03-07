@@ -20,6 +20,7 @@ interface PaymentMethodSelectorProps {
   amountUSD: number;
   amountXAF: number;
   userId: string;
+  onPaymentSuccess?: () => void;
 }
 
 type PaymentMethod = 'campay' | 'pawapay' | null;
