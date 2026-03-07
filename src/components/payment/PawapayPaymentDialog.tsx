@@ -59,6 +59,7 @@ export function PawapayPaymentDialog({
   planName,
   amountUSD,
   userId,
+  onPaymentSuccess,
 }: PawapayPaymentDialogProps) {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [selectedProvider, setSelectedProvider] = useState<string>("");
