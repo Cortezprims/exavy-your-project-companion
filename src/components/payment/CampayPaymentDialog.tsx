@@ -20,6 +20,7 @@ interface CampayPaymentDialogProps {
   planName: string;
   amount: number;
   userId: string;
+  onPaymentSuccess?: () => void;
 }
 
 type PaymentStatus = 'idle' | 'pending' | 'checking' | 'success' | 'failed';
