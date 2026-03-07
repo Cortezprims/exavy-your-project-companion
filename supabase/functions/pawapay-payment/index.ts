@@ -219,7 +219,6 @@ async function checkPaymentStatus(depositId: string) {
     const statusData = await statusResponse.json();
     console.log('Payment status:', statusData);
 
-    // Update transaction in database
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -233,6 +232,48 @@ async function checkPaymentStatus(depositId: string) {
           completed_at: ['COMPLETED', 'FAILED'].includes(statusData.status) ? new Date().toISOString() : null,
         })
         .eq('deposit_id', depositId);
+    }
+
+    // If payment completed, activate subscription immediately
+    if (statusData.status === 'COMPLETED') {
+      const { data: transaction } = await supabase
+        .from('pawapay_transactions')
+        .select('user_id, subscription_plan, amount')
+        .eq('deposit_id', depositId)
+        .single();
+
+      if (transaction) {
+        const now = new Date();
+        let expiresAt: Date;
+        if (transaction.subscription_plan === 'yearly') {
+          expiresAt = new Date(now.getTime());
+          expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+        } else {
+          expiresAt = new Date(now.getTime());
+          expiresAt.setMonth(expiresAt.getMonth() + 1);
+        }
+
+        const { error: subError } = await supabase
+          .from('subscriptions')
+          .upsert({
+            user_id: transaction.user_id,
+            plan: transaction.subscription_plan,
+            status: 'active',
+            started_at: new Date().toISOString(),
+            expires_at: expiresAt.toISOString(),
+            payment_reference: depositId,
+            amount: parseFloat(transaction.amount),
+            updated_at: new Date().toISOString(),
+          }, {
+            onConflict: 'user_id',
+          });
+
+        if (subError) {
+          console.error('Error activating subscription from status check:', subError);
+        } else {
+          console.log('Subscription activated via status check for user:', transaction.user_id);
+        }
+      }
     }
 
     return new Response(

@@ -121,10 +121,8 @@ Deno.serve(async (req) => {
 
 async function checkPaymentStatus(reference: string) {
   try {
-    // Use permanent access token
     const accessToken = Deno.env.get('CAMPAY_API_TOKEN');
 
-    // Check transaction status
     const statusResponse = await fetch(`${CAMPAY_API_URL}/transaction/${reference}/`, {
       method: 'GET',
       headers: {
@@ -135,6 +133,50 @@ async function checkPaymentStatus(reference: string) {
 
     const statusData = await statusResponse.json();
     console.log('Payment status:', statusData);
+
+    // If payment is successful, activate subscription immediately
+    if (statusData.status === 'SUCCESSFUL' && statusData.external_reference) {
+      const parts = statusData.external_reference.split('_');
+      const userId = parts[0];
+      const planId = parts[1];
+
+      if (userId && planId) {
+        const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+        const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        const now = new Date();
+        let expiresAt: Date;
+        if (planId === 'yearly') {
+          expiresAt = new Date(now.getTime());
+          expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+        } else {
+          expiresAt = new Date(now.getTime());
+          expiresAt.setMonth(expiresAt.getMonth() + 1);
+        }
+
+        const { error: subError } = await supabase
+          .from('subscriptions')
+          .upsert({
+            user_id: userId,
+            plan: planId,
+            status: 'active',
+            started_at: new Date().toISOString(),
+            expires_at: expiresAt.toISOString(),
+            payment_reference: reference,
+            amount: parseFloat(statusData.amount || '0'),
+            updated_at: new Date().toISOString(),
+          }, {
+            onConflict: 'user_id',
+          });
+
+        if (subError) {
+          console.error('Error activating subscription from status check:', subError);
+        } else {
+          console.log('Subscription activated via status check for user:', userId);
+        }
+      }
+    }
 
     return new Response(
       JSON.stringify({
