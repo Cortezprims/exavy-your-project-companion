@@ -270,6 +270,7 @@ const Subscription = () => {
           amountUSD={selectedPlan.priceUSD}
           amountXAF={selectedPlan.priceXAF}
           userId={user.id}
+          onPaymentSuccess={refresh}
         />
       )}
     </MainLayout>
